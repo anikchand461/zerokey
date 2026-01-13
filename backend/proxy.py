@@ -33,6 +33,32 @@ def _run_openai(api_key: str, body: dict):
     return requests.post(url, headers=headers, json=body)
 
 
+def _run_groq(api_key: str, body: dict):
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_anthropic(api_key: str, body: dict):
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_gemini(api_key: str, body: dict):
+    # Gemini uses a different format - model in URL
+    model = body.get("model", "gemini-pro")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    return requests.post(url, json=body)
+
+
 async def _proxy_request(provider: str, key_record: models.ApiKey, request: Request, db: Session):
     _ensure_not_expired(key_record)
 
@@ -46,6 +72,12 @@ async def _proxy_request(provider: str, key_record: models.ApiKey, request: Requ
     start_time = time.time()
     if provider == "openai":
         resp = _run_openai(api_key, body)
+    elif provider == "groq":
+        resp = _run_groq(api_key, body)
+    elif provider == "anthropic":
+        resp = _run_anthropic(api_key, body)
+    elif provider == "gemini":
+        resp = _run_gemini(api_key, body)
     else:
         raise HTTPException(400, f"Proxy not implemented for {provider}")
 
