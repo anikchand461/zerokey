@@ -1,43 +1,31 @@
-<!-- frontend/dashboard.html -->
-<h1>Dashboard</h1>
-<form id="addKeyForm">
-  <label>Provider (e.g. openai):</label
-  ><input type="text" id="provider" /><br />
-  <label>API Key:</label><input type="text" id="apiKey" /><br />
-  <button type="submit">Add Key</button>
-</form>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard - Zerokey</title>
+  </head>
+  <body>
+    <h1>Dashboard</h1>
+    <p id="status">Loading...</p>
 
-<ul id="keyList"></ul>
+    <script>
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        window.location.href = "/static/index.html";
+      }
 
-<script>
-  const token = localStorage.getItem("access_token");
-  if (!token) window.location.href = "/static/index.html";
+      document.getElementById("status").textContent =
+        "Logged in with JWT! Token ready.";
 
-  // Add key
-  document.getElementById("addKeyForm").onsubmit = async (e) => {
-    e.preventDefault();
-    const provider = document.getElementById("provider").value;
-    const key = document.getElementById("apiKey").value;
-    await fetch("/keys", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ provider, key }),
-    });
-    loadKeys();
-  };
-
-  // List keys
-  async function loadKeys() {
-    const res = await fetch("/keys", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const keys = await res.json();
-    document.getElementById("keyList").innerHTML = keys
-      .map((k) => `<li>${k.provider} (ID: ${k.id})</li>`)
-      .join("");
-  }
-  loadKeys();
-</script>
+      // Example: call protected endpoint
+      fetch("/keys", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((r) => r.json())
+        .then((data) => console.log("Keys:", data))
+        .catch((err) => console.error("API error:", err));
+    </script>
+  </body>
+</html>

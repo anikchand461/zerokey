@@ -3,171 +3,197 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zerokey - API Vault</title>
+    <title>Zerokey - Login</title>
     <style>
       body {
         font-family:
-          system-ui,
-          -apple-system,
-          sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
+          -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 420px;
+        margin: 5rem auto;
+        padding: 1.5rem;
+        background: #f9fafb;
+        color: #111827;
+      }
+      .container {
+        background: white;
         padding: 2rem;
-        text-align: center;
-        background: #f8f9fa;
-        color: #333;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
       }
       h1 {
-        color: #1a1a1a;
-        margin-bottom: 1rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: #1e40af;
       }
-      p {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin-bottom: 2rem;
+      label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+        color: #374151;
+      }
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
       }
       button {
-        padding: 1rem 2.5rem;
-        font-size: 1.3rem;
-        background: #0066cc;
+        width: 100%;
+        padding: 0.9rem;
+        background: #2563eb;
         color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
+        font-size: 1.05rem;
         cursor: pointer;
         transition: background 0.2s;
       }
       button:hover {
-        background: #0055aa;
+        background: #1d4ed8;
       }
       button:disabled {
-        background: #ccc;
+        background: #9ca3af;
         cursor: not-allowed;
       }
       #status {
-        margin-top: 1.5rem;
-        font-size: 1.1rem;
+        margin-top: 1rem;
+        text-align: center;
         font-weight: 500;
-        color: #444;
+        min-height: 1.4rem;
       }
       .error {
-        color: #d32f2f;
-        font-weight: bold;
+        color: #dc2626;
+      }
+      .success {
+        color: #16a34a;
+      }
+      .footer {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.95rem;
+        color: #6b7280;
+      }
+      .footer a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Zerokey API Vault</h1>
-    <p>
-      Securely store and proxy your API keys<br />
-      (OpenAI, Anthropic, Groq, Gemini, etc.)
-    </p>
+    <div class="container">
+      <h1>Zerokey API Vault</h1>
 
-    <button id="loginBtn" disabled>Loading Auth0...</button>
-    <p id="status">Initializing Auth0 SDK...</p>
+      <div id="loginForm">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter username"
+          required
+          autofocus
+        />
 
-    <!-- Auth0 SPA SDK – using a stable recent version from CDN -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.11/auth0-spa-js.production.min.js"></script>
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter password"
+          required
+        />
+
+        <button id="loginButton" onclick="login()">Login</button>
+
+        <p id="status"></p>
+      </div>
+
+      <div class="footer">
+        Don't have an account? <a href="/static/register.html">Register here</a
+        ><br />
+        <a href="#">Forgot password?</a> (coming soon)
+      </div>
+    </div>
 
     <script>
-      let auth0 = null;
-      const loginBtn = document.getElementById("loginBtn");
-      const statusEl = document.getElementById("status");
+      const loginBtn = document.getElementById("loginButton");
+      const status = document.getElementById("status");
 
-      // Initialize Auth0 client with your real values
-      async function initAuth0() {
-        try {
-          auth0 = await createAuth0Client({
-            domain: "dev-slvu1nbfnrviqsq3.eu.auth0.com",
-            clientId: "3b2O1jpRrQgfCRGIDDpBmI2bLKMCDX8l",
-            authorizationParams: {
-              redirect_uri: window.location.origin + "/static/index.html",
-              audience: "https://api.zerokey.com", // ← change if your audience is different
-              scope: "openid profile email",
-            },
-          });
-
-          console.log("Auth0 SDK initialized successfully");
-          statusEl.textContent = "Ready – click to login";
-          loginBtn.disabled = false;
-          loginBtn.textContent = "Login with Auth0";
-        } catch (err) {
-          console.error("Auth0 initialization failed:", err);
-          statusEl.classList.add("error");
-          statusEl.textContent =
-            "Error initializing Auth0: " +
-            (err.message || "Unknown error – check console");
-          loginBtn.disabled = true;
-        }
+      // Redirect if already logged in
+      if (localStorage.getItem("access_token")) {
+        window.location.href = "/static/dashboard.html";
       }
 
-      // Login button handler
-      loginBtn.addEventListener("click", async () => {
-        if (!auth0) {
-          alert("Auth0 is still initializing – please wait a moment");
+      async function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          status.className = "error";
+          status.textContent = "Please enter both username and password";
           return;
         }
 
-        console.log("Login button clicked – starting redirect");
-        statusEl.textContent = "Redirecting to Auth0...";
+        status.className = "";
+        status.innerHTML = '<span class="spinner"></span> Logging in...';
+        loginBtn.disabled = true;
 
         try {
-          await auth0.loginWithRedirect();
-        } catch (err) {
-          console.error("loginWithRedirect failed:", err);
-          statusEl.classList.add("error");
-          statusEl.textContent =
-            "Login failed: " + (err.message || "Unknown error");
-        }
-      });
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+          });
 
-      // Handle page load (normal or callback after Auth0 redirect)
-      window.addEventListener("load", async () => {
-        console.log("Page loaded – checking for callback...");
-
-        const isCallback =
-          window.location.search.includes("code=") &&
-          window.location.search.includes("state=");
-
-        if (isCallback) {
-          console.log("Auth0 callback detected – processing...");
-          statusEl.textContent = "Processing login...";
-
-          try {
-            if (!auth0) await initAuth0();
-
-            await auth0.handleRedirectCallback();
-            const token = await auth0.getTokenSilently();
-
-            console.log(
-              "Login success – token received:",
-              token.substring(0, 30) + "...",
-            );
-            localStorage.setItem("access_token", token);
-
-            statusEl.textContent =
-              "Login successful! Redirecting to dashboard...";
-            statusEl.classList.remove("error");
-
-            // Clean URL bar and go to dashboard
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname,
-            );
-            setTimeout(() => {
-              window.location.href = "/static/dashboard.html";
-            }, 800);
-          } catch (err) {
-            console.error("Callback handling failed:", err);
-            statusEl.classList.add("error");
-            statusEl.textContent =
-              "Login error: " + (err.message || "Failed to process callback");
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Login failed");
           }
-        } else {
-          // Normal page → initialize SDK
-          await initAuth0();
+
+          const data = await res.json();
+          localStorage.setItem("access_token", data.access_token);
+
+          status.className = "success";
+          status.textContent = "Login successful! Redirecting...";
+
+          setTimeout(() => {
+            window.location.href = "/static/dashboard.html";
+          }, 1200);
+        } catch (err) {
+          status.className = "error";
+          status.textContent = "Error: " + err.message;
+          loginBtn.disabled = false;
         }
-      });
+      }
     </script>
   </body>
 </html>

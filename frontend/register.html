@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zerokey - Register</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 400px;
+        margin: 4rem auto;
+        padding: 1rem;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      input,
+      button {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        margin: 0.6rem 0;
+        box-sizing: border-box;
+      }
+      button {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+      button:hover {
+        background: #218838;
+      }
+      #status {
+        margin-top: 1rem;
+        text-align: center;
+        font-weight: bold;
+      }
+      .error {
+        color: #d32f2f;
+      }
+      .success {
+        color: #28a745;
+      }
+      .link {
+        text-align: center;
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Zerokey API Vault</h1>
+    <h2>Register</h2>
+
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <input type="email" id="email" placeholder="Email (optional)" />
+    <button onclick="register()">Create Account</button>
+
+    <p id="status"></p>
+
+    <div class="link">
+      Already have an account? <a href="/static/index.html">Login here</a>
+    </div>
+
+    <script>
+      async function register() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value.trim();
+        const status = document.getElementById("status");
+
+        if (!username || !password) {
+          status.className = "error";
+          status.textContent = "Username and password are required";
+          return;
+        }
+
+        status.textContent = "Creating account...";
+        status.className = "";
+
+        try {
+          const res = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              password,
+              email: email || null,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.detail || "Registration failed");
+          }
+
+          status.className = "success";
+          status.textContent = "Account created! Redirecting to login...";
+
+          setTimeout(() => {
+            window.location.href = "/static/index.html";
+          }, 1500);
+        } catch (err) {
+          status.className = "error";
+          status.textContent = "Error: " + (err.message || "Unknown error");
+        }
+      }
+    </script>
+  </body>
+</html>
