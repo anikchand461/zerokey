@@ -94,6 +94,10 @@
       <div class="section">
         <h2>Add New API Key</h2>
         <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="keyName" placeholder="e.g. production-openai" />
+        </div>
+        <div class="form-group">
           <label>Provider</label>
           <select id="provider">
             <option value="openai">OpenAI</option>
@@ -111,6 +115,10 @@
             placeholder="sk-... or your key here"
           />
         </div>
+        <div class="form-group">
+          <label>Expiration (optional)</label>
+          <input type="date" id="expiresAt" />
+        </div>
         <button onclick="addKey()">Add Key</button>
         <p id="addStatus"></p>
       </div>
@@ -121,9 +129,13 @@
         <table id="keysTable">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Name</th>
               <th>Provider</th>
-              <th>Created At</th>
+              <th>Visible API Key</th>
+              <th>Unified Endpoint</th>
+              <th>Unified API Key</th>
+              <th>Expires</th>
+              <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -159,36 +171,48 @@
 
       // Add new key
       async function addKey() {
+        const name = document.getElementById("keyName").value.trim();
         const provider = document.getElementById("provider").value;
         const apiKey = document.getElementById("apiKey").value.trim();
+        const expiresRaw = document.getElementById("expiresAt").value;
         const status = document.getElementById("addStatus");
 
-        if (!apiKey) {
+        if (!name || !apiKey) {
           status.className = "error";
-          status.textContent = "API Key is required";
+          status.textContent = "Name and API Key are required";
           return;
         }
 
         status.textContent = "Adding key...";
         status.className = "";
 
+        const expires_at = expiresRaw ? new Date(expiresRaw).toISOString() : null;
+
         try {
           const res = await fetch("/keys", {
             method: "POST",
             headers,
-            body: JSON.stringify({ provider, key: apiKey }),
+            body: JSON.stringify({ provider, name, key: apiKey, expires_at }),
           });
 
           if (!res.ok) throw new Error(await res.text());
 
           status.className = "success";
           status.textContent = "Key added successfully!";
+          document.getElementById("keyName").value = "";
           document.getElementById("apiKey").value = "";
+          document.getElementById("expiresAt").value = "";
           loadKeys(); // Refresh list
         } catch (err) {
           status.className = "error";
           status.textContent = "Error: " + err.message;
         }
+      }
+
+      function formatExpiry(expires_at) {
+        if (!expires_at) return "Never";
+        const d = new Date(expires_at);
+        return d.toLocaleDateString();
       }
 
       // Load list of keys
@@ -212,10 +236,17 @@
           keys.forEach((k) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-            <td>${k.id}</td>
+            <td>${k.name}</td>
             <td>${k.provider}</td>
+            <td><code>${k.api_key}</code></td>
+            <td><code>${k.unified_endpoint}</code></td>
+            <td><code>${k.unified_api_key}</code></td>
+            <td>${formatExpiry(k.expires_at)}</td>
             <td>${new Date(k.created_at).toLocaleString()}</td>
-            <td><button onclick="deleteKey(${k.id})">Delete</button></td>
+            <td>
+              <button onclick="viewUsage(${k.id}, '${k.name.replace(/'/g, "\'")}')">Usage</button>
+              <button onclick="deleteKey(${k.id})">Delete</button>
+            </td>
           `;
             tbody.appendChild(tr);
           });
@@ -239,6 +270,12 @@
         } catch (err) {
           alert("Delete failed: " + err.message);
         }
+      }
+
+      function viewUsage(id, name) {
+        window.location.href = `/static/key-usage.html?keyId=${id}&name=${encodeURIComponent(
+          name
+        )}`;
       }
 
       // Load usage data + chart
