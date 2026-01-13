@@ -1,0 +1,9 @@
+fastapi 
+uvicorn 
+sqlalchemy 
+python-dotenv 
+cryptography 
+pyjwt 
+requests 
+python-multipart 
+jose[cryptography]
