@@ -6,60 +6,168 @@
     <title>Zerokey - API Vault</title>
     <style>
       body {
-        font-family: system-ui, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
         max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
+        text-align: center;
+        background: #f8f9fa;
+        color: #333;
+      }
+      h1 {
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
       }
       button {
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
+        padding: 1rem 2.5rem;
+        font-size: 1.3rem;
         background: #0066cc;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
+        transition: background 0.2s;
       }
       button:hover {
-        background: #0052a3;
+        background: #0055aa;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      #status {
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #444;
+      }
+      .error {
+        color: #d32f2f;
+        font-weight: bold;
       }
     </style>
   </head>
   <body>
     <h1>Zerokey API Vault</h1>
     <p>
-      Securely store and proxy your API keys (OpenAI, Anthropic, Groq, etc.)
+      Securely store and proxy your API keys<br />
+      (OpenAI, Anthropic, Groq, Gemini, etc.)
     </p>
 
-    <button id="loginBtn">Login with Auth0</button>
-    <p id="status">Not logged in</p>
+    <button id="loginBtn" disabled>Loading Auth0...</button>
+    <p id="status">Initializing Auth0 SDK...</p>
 
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.0/auth0-spa-js.production.min.js"></script>
+    <!-- Auth0 SPA SDK – using a stable recent version from CDN -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.11/auth0-spa-js.production.min.js"></script>
+
     <script>
-      const auth0 = createAuth0Client({
-        domain: "YOUR_AUTH0_DOMAIN", // ← replace
-        clientId: "YOUR_CLIENT_ID", // ← replace
-        authorizationParams: {
-          redirect_uri: window.location.origin + "/static/callback.html",
-          audience: "YOUR_API_AUDIENCE", // ← replace
-          scope: "openid profile email",
-        },
+      let auth0 = null;
+      const loginBtn = document.getElementById("loginBtn");
+      const statusEl = document.getElementById("status");
+
+      // Initialize Auth0 client with your real values
+      async function initAuth0() {
+        try {
+          auth0 = await createAuth0Client({
+            domain: "dev-slvu1nbfnrviqsq3.eu.auth0.com",
+            clientId: "3b2O1jpRrQgfCRGIDDpBmI2bLKMCDX8l",
+            authorizationParams: {
+              redirect_uri: window.location.origin + "/static/index.html",
+              audience: "https://api.zerokey.com", // ← change if your audience is different
+              scope: "openid profile email",
+            },
+          });
+
+          console.log("Auth0 SDK initialized successfully");
+          statusEl.textContent = "Ready – click to login";
+          loginBtn.disabled = false;
+          loginBtn.textContent = "Login with Auth0";
+        } catch (err) {
+          console.error("Auth0 initialization failed:", err);
+          statusEl.classList.add("error");
+          statusEl.textContent =
+            "Error initializing Auth0: " +
+            (err.message || "Unknown error – check console");
+          loginBtn.disabled = true;
+        }
+      }
+
+      // Login button handler
+      loginBtn.addEventListener("click", async () => {
+        if (!auth0) {
+          alert("Auth0 is still initializing – please wait a moment");
+          return;
+        }
+
+        console.log("Login button clicked – starting redirect");
+        statusEl.textContent = "Redirecting to Auth0...";
+
+        try {
+          await auth0.loginWithRedirect();
+        } catch (err) {
+          console.error("loginWithRedirect failed:", err);
+          statusEl.classList.add("error");
+          statusEl.textContent =
+            "Login failed: " + (err.message || "Unknown error");
+        }
       });
 
-      document.getElementById("loginBtn").onclick = async () => {
-        await (await auth0).loginWithRedirect();
-      };
+      // Handle page load (normal or callback after Auth0 redirect)
+      window.addEventListener("load", async () => {
+        console.log("Page loaded – checking for callback...");
 
-      // Check if we're back from login
-      window.onload = async () => {
-        if (window.location.search.includes("code=")) {
-          await (await auth0).handleRedirectCallback();
-          const token = await (await auth0).getTokenSilently();
-          localStorage.setItem("access_token", token);
-          document.getElementById("status").textContent = "Logged in!";
-          window.location.href = "/static/dashboard.html"; // redirect to dashboard
+        const isCallback =
+          window.location.search.includes("code=") &&
+          window.location.search.includes("state=");
+
+        if (isCallback) {
+          console.log("Auth0 callback detected – processing...");
+          statusEl.textContent = "Processing login...";
+
+          try {
+            if (!auth0) await initAuth0();
+
+            await auth0.handleRedirectCallback();
+            const token = await auth0.getTokenSilently();
+
+            console.log(
+              "Login success – token received:",
+              token.substring(0, 30) + "...",
+            );
+            localStorage.setItem("access_token", token);
+
+            statusEl.textContent =
+              "Login successful! Redirecting to dashboard...";
+            statusEl.classList.remove("error");
+
+            // Clean URL bar and go to dashboard
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname,
+            );
+            setTimeout(() => {
+              window.location.href = "/static/dashboard.html";
+            }, 800);
+          } catch (err) {
+            console.error("Callback handling failed:", err);
+            statusEl.classList.add("error");
+            statusEl.textContent =
+              "Login error: " + (err.message || "Failed to process callback");
+          }
+        } else {
+          // Normal page → initialize SDK
+          await initAuth0();
         }
-      };
+      });
     </script>
   </body>
 </html>
