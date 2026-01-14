@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from . import database, dependencies, models, schemas, security
+from . import database, dependencies, models, schemas, security, provider_detection
 
 router = APIRouter(prefix="/keys", tags=["vault"])
 
@@ -24,7 +24,6 @@ def _mask_api_key(key: str) -> str:
 
 
 class ApiKeyCreate(BaseModel):
-    provider: str
     name: str
     key: str
     expires_at: Optional[datetime] = None
@@ -36,7 +35,13 @@ def add_key(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(dependencies.get_current_user),
 ):
-    provider_slug = _slugify(key_in.provider)
+    # Auto-detect provider from API key
+    try:
+        provider = provider_detection.detect_provider(key_in.key)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    provider_slug = _slugify(provider)
     name_slug = _slugify(key_in.name)
 
     existing = (
