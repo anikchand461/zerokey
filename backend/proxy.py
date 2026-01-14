@@ -10,8 +10,14 @@ router = APIRouter(prefix="/proxy", tags=["proxy"])
 
 
 def _ensure_not_expired(key: models.ApiKey) -> None:
-    if key.expires_at and key.expires_at <= datetime.now(timezone.utc):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "API key has expired")
+    if key.expires_at:
+        # Handle both naive and aware datetimes
+        expires_at = key.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+        if expires_at <= datetime.now(timezone.utc):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "API key has expired")
 
 
 def _find_key_by_name(db: Session, provider: str, name_slug: str, user_id: int | None = None):
