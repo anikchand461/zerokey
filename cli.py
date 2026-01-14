@@ -128,19 +128,27 @@ def add_key():
             r.raise_for_status()
             data = r.json()
 
-            console.print(Panel.fit(
-                f"[bold green]✓ Key added successfully![/bold green]\n\n"
-                f"Provider: [cyan]{data['provider']}[/cyan]\n"
-                f"Name: [bold]{data['name']}[/bold]\n"
-                f"Unified API Key: [bold blue]{data['unified_api_key']}[/bold]\n"
-                f"Endpoint: [blue]{data['unified_endpoint']}[/blue]\n"
-                f"Expires: [yellow]{data['expires_at'] or 'Never'}[/yellow]",
-                title="Key Details",
+            # Fixed: Proper rich markup (no invalid combined tags)
+            success_text = Text.assemble(
+                ("✓ Key added successfully!\n\n", "bold green"),
+                ("Provider: ", "bold"), (f"{data['provider']}\n", "cyan"),
+                ("Name: ", "bold"), (f"{data['name']}\n", "white"),
+                ("Unified API Key: ", "bold"), (f"{data['unified_api_key']}\n", "blue"),
+                ("Endpoint: ", "bold"), (f"{data['unified_endpoint']}\n", "blue"),
+                ("Expires: ", "bold"), (f"{data['expires_at'] or 'Never'}", "yellow")
+            )
+
+            console.print(Panel(
+                success_text,
+                title="New Key Added",
                 border_style="green",
-                padding=(1, 2)
+                padding=(1, 2),
+                expand=False
             ))
+
         except requests.HTTPError as e:
-            console.print(f"[red]✗ {e.response.json().get('detail', 'Failed to add key')}[/red]")
+            error_detail = e.response.json().get('detail', 'Unknown error')
+            console.print(f"[red]✗ {error_detail}[/red]")
             raise typer.Exit(1)
 
 @app.command(name="ls")
