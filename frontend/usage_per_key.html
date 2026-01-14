@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage for API Key - Zerokey</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* Same style as dashboard */
+      /* ... */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Usage for API Key</h1>
+      <a href="/static/dashboard.html">Back to Dashboard</a>
+
+      <div class="section">
+        <h2>Usage Chart</h2>
+        <canvas id="keyUsageChart"></canvas>
+        <p id="status">Loading...</p>
+      </div>
+    </div>
+
+    <script>
+      const token = localStorage.getItem('access_token');
+      if (!token) window.location.href = '/static/index.html';
+
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const urlParams = new URLSearchParams(window.location.search);
+      const keyId = urlParams.get('key_id');
+
+      async function loadKeyUsage() {
+        const status = document.getElementById('status');
+        status.textContent = "Loading usage for key...";
+
+        try {
+          const res = await fetch('/usage', { headers });  # update to /usage/{key_id} if you add per-key endpoint
+          if (!res.ok) throw new Error(await res.text());
+
+          const logs = await res.json();
+          const filteredLogs = logs.filter(log => log.api_key_id === parseInt(keyId));  # filter per key
+
+          status.textContent = filteredLogs.length ? "" : "No usage for this key yet.";
+
+          // Chart: tokens over time
+          const labels = filteredLogs.map(log => new Date(log.created_at).toLocaleString());
+          const tokens = filteredLogs.map(log => log.total_tokens);
+
+          const ctx = document.getElementById('keyUsageChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Tokens Used',
+                data: tokens,
+                borderColor: '#3b82f6',
+                tension: 0.1
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        } catch (err) {
+          status.className = 'error';
+          status.textContent = "Error: " + err.message;
+        }
+      }
+
+      window.addEventListener('load', loadKeyUsage);
+    </script>
+  </body>
+</html>
