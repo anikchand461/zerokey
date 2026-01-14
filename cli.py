@@ -311,50 +311,78 @@ def usage(sl_no: Optional[int] = typer.Argument(None, help="Serial number from '
 # Quick Proxy Call
 # ────────────────────────────────────────────────
 
+# cli.py (updated call command only - replace your existing call function)
+
 @app.command()
 def call(
-    unified_key: str = typer.Argument(..., help="Unified API key (format: apikey-provider-name)"),
-    model: str = typer.Option("llama-3.3-70b-versatile", help="Model name"),
+    unified_key: str = typer.Argument(..., help="Unified API key (e.g. apikey-gemini-cbhgemini)"),
+    model: str = typer.Option(..., prompt="Model name (e.g. llama-3.3-70b-versatile for Groq, gemini-1.5-flash for Gemini)", help="Model to use"),
     message: str = typer.Option(..., prompt=True, help="Your prompt/message")
 ):
-    """Quickly call an API using unified key"""
-    # Parse unified key: apikey-{provider}-{name_slug}
-    try:
-        parts = unified_key.split("-", 2)
-        if len(parts) != 3 or parts[0] != "apikey":
-            raise ValueError("Invalid unified key format")
-        provider = parts[1]
-        name_slug = parts[2]
-    except (ValueError, IndexError):
-        console.print("[red]✗ Invalid unified key format. Expected: apikey-provider-name[/red]")
-        console.print("[yellow]Example: apikey-groq-cbhgroq[/yellow]")
+    """Quickly call any API using unified key and show full proper JSON response"""
+    # Parse unified_key
+    parts = unified_key.split('-')
+    if len(parts) < 3 or parts[0] != 'apikey':
+        console.print("[red]Invalid unified key format. Expected: apikey-provider-name[/red]")
         raise typer.Exit(1)
+
+    provider = parts[1]
+    name_slug = '-'.join(parts[2:])
 
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": message}]
     }
 
-    with console.status("[cyan]Calling API..."):
+    with console.status(f"[cyan]Calling {provider.upper()} ({model})..."):
         try:
             r = requests.post(
                 f"{BASE_URL}/proxy/u/{provider}/{name_slug}",
                 json=payload,
                 headers={
-                    "Authorization": f"Bearer {unified_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {unified_key}"
                 }
             )
             r.raise_for_status()
+            response_data = r.json()
+
+            # Full JSON string
+            json_str = json.dumps(response_data, indent=2)
+
+            # Simple colorization (keys cyan, values green)
+            colored_json = Text()
+            for line in json_str.splitlines():
+                if ':' in line and not line.strip().startswith('}'):
+                    key, value = line.split(":", 1)
+                    colored_json.append(Text(key, style="cyan"))
+                    colored_json.append(Text(":", style="white"))
+                    colored_json.append(Text(value, style="green"))
+                else:
+                    colored_json.append(Text(line, style="white"))
+                colored_json.append("\n")
+
             console.print(Panel(
-                json.dumps(r.json(), indent=2),
-                title="API Response",
-                border_style="green",
-                expand=False
+                colored_json,
+                title=f"Full API Response • {provider.upper()} • {model}",
+                subtitle=f"Prompt: {message[:80]}{'...' if len(message) > 80 else ''}",
+                border_style="bright_green",
+                expand=True,
+                padding=(1, 2)
             ))
+
         except requests.HTTPError as e:
             console.print(f"[red]✗ API call failed: {e.response.status_code}[/red]")
-            console.print(e.response.text)
+            try:
+                console.print(Panel(
+                    json.dumps(e.response.json(), indent=2),
+                    title="Error Response",
+                    border_style="red",
+                    expand=True
+                ))
+            except:
+                console.print(e.response.text)
+
 
 if __name__ == "__main__":
     app()
