@@ -65,6 +65,212 @@ def _run_gemini(api_key: str, body: dict):
     return requests.post(url, json=body)
 
 
+def _run_openrouter(api_key: str, body: dict):
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_mistral(api_key: str, body: dict):
+    url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_together(api_key: str, body: dict):
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_fireworks(api_key: str, body: dict):
+    url = "https://api.fireworks.ai/inference/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_anyscale(api_key: str, body: dict):
+    url = "https://api.endpoints.anyscale.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_deepinfra(api_key: str, body: dict):
+    url = "https://api.deepinfra.com/v1/openai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_nebius(api_key: str, body: dict):
+    url = "https://api.ai.nebius.cloud/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_cohere(api_key: str, body: dict):
+    url = "https://api.cohere.com/v1/chat"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_ai21(api_key: str, body: dict):
+    url = "https://api.ai21.com/studio/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_perplexity(api_key: str, body: dict):
+    url = "https://api.perplexity.ai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_deepseek(api_key: str, body: dict):
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_qwen(api_key: str, body: dict):
+    url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_zhipu(api_key: str, body: dict):
+    # For Zhipu (GLM), authentication uses JWT generated from API key (id.secret format)
+    try:
+        import jwt  # Requires PyJWT library
+        id, secret = api_key.split('.')
+        payload = {
+            "api_key": id,
+            "exp": int(time.time()) + 3600,
+            "timestamp": int(time.time())
+        }
+        token = jwt.encode(payload, secret, algorithm="HS256")
+    except Exception as e:
+        raise HTTPException(400, f"Failed to generate JWT for Zhipu: {str(e)}")
+    
+    url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_yi(api_key: str, body: dict):
+    url = "https://api.lingyiwanwu.com/v1/chat/completions"  # Note: 01.AI is also known as Lingyi Wanwu
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_grok(api_key: str, body: dict):
+    url = "https://api.x.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_aleph_alpha(api_key: str, body: dict):
+    url = "https://api.aleph-alpha.com/complete"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_replicate(api_key: str, body: dict):
+    create_url = "https://api.replicate.com/v1/predictions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    create_resp = requests.post(create_url, headers=headers, json=body)
+    if create_resp.status_code >= 400:
+        return create_resp
+    prediction = create_resp.json()
+    prediction_id = prediction.get("id")
+    if not prediction_id:
+        raise HTTPException(500, "Failed to create prediction")
+    
+    while True:
+        get_url = f"https://api.replicate.com/v1/predictions/{prediction_id}"
+        get_resp = requests.get(get_url, headers=headers)
+        if get_resp.status_code >= 400:
+            return get_resp
+        data = get_resp.json()
+        status = data.get("status")
+        if status in ["succeeded", "failed", "canceled"]:
+            # Return the get_resp as the final response
+            return get_resp
+        time.sleep(1)
+
+
+def _run_baseten(api_key: str, body: dict):
+    url = "https://inference.baseten.co/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+
+def _run_huggingface(api_key: str, body: dict):
+    url = "https://api.huggingface.co/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return requests.post(url, headers=headers, json=body)
+
+# Note: For "modal", no fixed API endpoint as it's a deployment platform. 
+# Users deploy custom endpoints, so proxy not implemented here.
+# If you have a specific base URL, you can add it similarly.
+
+
 async def _proxy_request(provider: str, key_record: models.ApiKey, request: Request, db: Session):
     _ensure_not_expired(key_record)
 
@@ -84,6 +290,44 @@ async def _proxy_request(provider: str, key_record: models.ApiKey, request: Requ
         resp = _run_anthropic(api_key, body)
     elif provider == "gemini":
         resp = _run_gemini(api_key, body)
+    elif provider == "openrouter":
+        resp = _run_openrouter(api_key, body)
+    elif provider == "mistral":
+        resp = _run_mistral(api_key, body)
+    elif provider == "together":
+        resp = _run_together(api_key, body)
+    elif provider == "fireworks":
+        resp = _run_fireworks(api_key, body)
+    elif provider == "anyscale":
+        resp = _run_anyscale(api_key, body)
+    elif provider == "deepinfra":
+        resp = _run_deepinfra(api_key, body)
+    elif provider == "nebius":
+        resp = _run_nebius(api_key, body)
+    elif provider == "cohere":
+        resp = _run_cohere(api_key, body)
+    elif provider == "ai21":
+        resp = _run_ai21(api_key, body)
+    elif provider == "perplexity":
+        resp = _run_perplexity(api_key, body)
+    elif provider == "deepseek":
+        resp = _run_deepseek(api_key, body)
+    elif provider == "qwen":
+        resp = _run_qwen(api_key, body)
+    elif provider == "zhipu":
+        resp = _run_zhipu(api_key, body)
+    elif provider == "01ai":
+        resp = _run_yi(api_key, body)
+    elif provider == "grok":
+        resp = _run_grok(api_key, body)
+    elif provider == "aleph_alpha":
+        resp = _run_aleph_alpha(api_key, body)
+    elif provider == "replicate":
+        resp = _run_replicate(api_key, body)
+    elif provider == "baseten":
+        resp = _run_baseten(api_key, body)
+    elif provider == "huggingface":
+        resp = _run_huggingface(api_key, body)
     else:
         raise HTTPException(400, f"Proxy not implemented for {provider}")
 
