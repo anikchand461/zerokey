@@ -11,7 +11,7 @@ msgs = [
     "Difference between TCP and UDP",
     "What is prompt engineering?",
     "How does LLM inference work?"
-]
+]*2
 
 for m in msgs:
     print(requests.post(

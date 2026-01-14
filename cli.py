@@ -128,27 +128,19 @@ def add_key():
             r.raise_for_status()
             data = r.json()
 
-            # Fixed: Proper rich markup (no invalid combined tags)
-            success_text = Text.assemble(
-                ("✓ Key added successfully!\n\n", "bold green"),
-                ("Provider: ", "bold"), (f"{data['provider']}\n", "cyan"),
-                ("Name: ", "bold"), (f"{data['name']}\n", "white"),
-                ("Unified API Key: ", "bold"), (f"{data['unified_api_key']}\n", "blue"),
-                ("Endpoint: ", "bold"), (f"{data['unified_endpoint']}\n", "blue"),
-                ("Expires: ", "bold"), (f"{data['expires_at'] or 'Never'}", "yellow")
-            )
-
-            console.print(Panel(
-                success_text,
-                title="New Key Added",
+            console.print(Panel.fit(
+                f"[bold green]✓ Key added successfully![/bold green]\n\n"
+                f"Provider: [cyan]{data['provider']}[/cyan]\n"
+                f"Name: [bold]{data['name']}[/bold]\n"
+                f"Unified API Key: [bold cyan]{data['unified_api_key']}[/bold cyan]\n"
+                f"Endpoint: [blue]{data['unified_endpoint']}[/blue]\n"
+                f"Expires: [yellow]{data['expires_at'] or 'Never'}[/yellow]",
+                title="Key Details",
                 border_style="green",
-                padding=(1, 2),
-                expand=False
+                padding=(1, 2)
             ))
-
         except requests.HTTPError as e:
-            error_detail = e.response.json().get('detail', 'Unknown error')
-            console.print(f"[red]✗ {error_detail}[/red]")
+            console.print(f"[red]✗ {e.response.json().get('detail', 'Failed to add key')}[/red]")
             raise typer.Exit(1)
 
 @app.command(name="ls")
@@ -321,11 +313,23 @@ def usage(sl_no: Optional[int] = typer.Argument(None, help="Serial number from '
 
 @app.command()
 def call(
-    unified_key: str = typer.Argument(..., help="Unified API key"),
-    model: str = typer.Option("llama3-70b-8192", help="Model name"),
+    unified_key: str = typer.Argument(..., help="Unified API key (format: apikey-provider-name)"),
+    model: str = typer.Option("llama-3.3-70b-versatile", help="Model name"),
     message: str = typer.Option(..., prompt=True, help="Your prompt/message")
 ):
     """Quickly call an API using unified key"""
+    # Parse unified key: apikey-{provider}-{name_slug}
+    try:
+        parts = unified_key.split("-", 2)
+        if len(parts) != 3 or parts[0] != "apikey":
+            raise ValueError("Invalid unified key format")
+        provider = parts[1]
+        name_slug = parts[2]
+    except (ValueError, IndexError):
+        console.print("[red]✗ Invalid unified key format. Expected: apikey-provider-name[/red]")
+        console.print("[yellow]Example: apikey-groq-cbhgroq[/yellow]")
+        raise typer.Exit(1)
+
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": message}]
@@ -334,9 +338,12 @@ def call(
     with console.status("[cyan]Calling API..."):
         try:
             r = requests.post(
-                f"{BASE_URL}/proxy/{unified_key}",
+                f"{BASE_URL}/proxy/u/{provider}/{name_slug}",
                 json=payload,
-                headers={"Content-Type": "application/json"}
+                headers={
+                    "Authorization": f"Bearer {unified_key}",
+                    "Content-Type": "application/json"
+                }
             )
             r.raise_for_status()
             console.print(Panel(
@@ -346,7 +353,7 @@ def call(
                 expand=False
             ))
         except requests.HTTPError as e:
-            console.print(f"[red]API call failed: {e.response.status_code}[/red]")
+            console.print(f"[red]✗ API call failed: {e.response.status_code}[/red]")
             console.print(e.response.text)
 
 if __name__ == "__main__":
