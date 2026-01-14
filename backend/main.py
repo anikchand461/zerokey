@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
 from . import vault, proxy, usage, auth   # ← add auth
+from fastapi.responses import RedirectResponse
 
 app = FastAPI(title="Zerokey API Vault MVP")
 
@@ -17,4 +18,4 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/")
 def root():
-    return {"message": "Zerokey API Vault – visit /static/index.html"}
+    return RedirectResponse(url="/static/index.html")
