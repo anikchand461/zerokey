@@ -1,6 +1,23 @@
 import requests
-print(requests.post(
-    "http://localhost:8000/proxy/u/groq/groq",
-    headers={"Authorization":"Bearer apikey-groq-groq","Content-Type":"application/json"},
-    json={"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":input("Message: ")}]}
-).json())
+
+msgs = [
+    "What is machine learning?",
+    "Explain Docker in simple terms",
+    "What is the difference between REST and GraphQL?",
+    "How does Kubernetes work?",
+    "What is an API gateway?",
+    "Explain CI/CD pipeline",
+    "What is vector database?",
+    "Difference between TCP and UDP",
+    "What is prompt engineering?",
+    "How does LLM inference work?"
+]
+
+for m in msgs:
+    print(requests.post(
+        "http://localhost:8000/proxy/u/groq/cbhgroq",
+        headers={"Authorization":"Bearer apikey-groq-cbhgroq","Content-Type":"application/json"},
+        json={"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":m}]}
+    ).json())
+
+
