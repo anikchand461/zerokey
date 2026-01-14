@@ -16,6 +16,13 @@ def _slugify(value: str) -> str:
     return clean.strip("-") or "key"
 
 
+def _mask_api_key(key: str) -> str:
+    """Mask API key showing only first 4 and last 4 characters."""
+    if len(key) <= 8:
+        return "****"
+    return f"{key[:4]}****{key[-4:]}"
+
+
 class ApiKeyCreate(BaseModel):
     provider: str
     name: str
@@ -64,13 +71,15 @@ def add_key(
     db.commit()
     db.refresh(db_key)
 
+    decrypted_key = security.decrypt_api_key(db_key.encrypted_key)
+
     return schemas.ApiKeyOut(
         id=db_key.id,
         provider=db_key.api_provider,
         name=db_key.name,
         created_at=db_key.created_at,
         expires_at=db_key.expires_at,
-        api_key=security.decrypt_api_key(db_key.encrypted_key),
+        api_key=_mask_api_key(decrypted_key),
         unified_api_key=unified_api_key_plain,
         unified_endpoint=db_key.unified_endpoint,
     )
@@ -95,7 +104,7 @@ def list_keys(
             name=k.name,
             created_at=k.created_at,
             expires_at=k.expires_at,
-            api_key=security.decrypt_api_key(k.encrypted_key),
+            api_key=_mask_api_key(security.decrypt_api_key(k.encrypted_key)),
             unified_api_key=security.decrypt_api_key(k.unified_key_encrypted),
             unified_endpoint=k.unified_endpoint,
         )
