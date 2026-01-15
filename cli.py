@@ -80,15 +80,21 @@ def login():
     
     # Display options with logos/icons
     console.print("  [bold]1.[/bold] JWT Authentication (Username & Password)")
-    console.print("  [bold]2.[/bold] GitHub OAuth\n")
+    console.print("  [bold]2.[/bold] GitHub OAuth")
+    console.print("  [bold]3.[/bold] GitLab OAuth\n")
     
     choice = typer.prompt(
         "Enter your choice",
-        type=click.Choice(["1", "2"]),
+        type=click.Choice(["1", "2", "3"]),
         default="1"
     )
     
-    auth_choice = "jwt" if choice == "1" else "github"
+    if choice == "1":
+        auth_choice = "jwt"
+    elif choice == "2":
+        auth_choice = "github"
+    else:
+        auth_choice = "gitlab"
     
     if auth_choice == "jwt":
         console.print("\n[bold cyan] JWT Login[/bold cyan]")
@@ -145,6 +151,40 @@ def login():
         save_token(pasted_token.strip())
         console.print(Panel(
             "[bold green]✓ GitHub login successful via CLI![/bold green]\nToken saved securely.",
+            title="Success",
+            border_style="green",
+            expand=False
+        ))
+    
+    elif auth_choice == "gitlab":
+        import webbrowser
+        import time
+        
+        console.print(Panel(
+            "[bold cyan]:gitlab: GitLab Login Flow[/bold cyan]\n\n"
+            "[yellow]Step 1:[/yellow] Opening GitLab authorization in your browser...\n"
+            "[yellow]Step 2:[/yellow] After you authorize, your JWT will be shown in the browser\n"
+            "[yellow]Step 3:[/yellow] Copy it and paste back here to finish CLI login",
+            title="GitLab OAuth",
+            border_style="cyan",
+            expand=False
+        ))
+        
+        gitlab_url = f"{BASE_URL}/auth/gitlab/login?state=cli"
+        console.print(f"\n[blue]Opening: {gitlab_url}[/blue]\n")
+        
+        webbrowser.open(gitlab_url)
+        
+        console.print("\n[bold yellow]After authorizing, copy the JWT shown in the browser and paste it below.[/bold yellow]\n")
+        pasted_token = typer.prompt("Paste JWT from browser", hide_input=True)
+
+        if not pasted_token.strip():
+            console.print("[red]✗ No token provided. Aborting.[/red]")
+            raise typer.Exit(1)
+
+        save_token(pasted_token.strip())
+        console.print(Panel(
+            "[bold green]✓ GitLab login successful via CLI![/bold green]\nToken saved securely.",
             title="Success",
             border_style="green",
             expand=False

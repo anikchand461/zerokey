@@ -262,3 +262,185 @@ def github_callback(
         print(f"[GitHub OAuth] Unexpected error: {str(e)}")
         error_msg = f"Error:+{str(e)[:50]}"
         return RedirectResponse(url=f"/static/index.html?error={error_msg}")
+
+
+# ────────────────────────────────────────────────
+# GitLab OAuth Routes
+# ────────────────────────────────────────────────
+
+@router.get("/gitlab/login")
+def gitlab_login(state: str | None = None):
+    """Redirect user to GitLab for authentication"""
+    if not config.GITLAB_CLIENT_ID or not config.GITLAB_CLIENT_SECRET:
+        raise HTTPException(400, detail="GitLab OAuth not configured. Set GITLAB_CLIENT_ID and GITLAB_CLIENT_SECRET in .env")
+    
+    gitlab_auth_url = (
+        f"https://gitlab.com/oauth/authorize?"
+        f"client_id={config.GITLAB_CLIENT_ID}&"
+        f"redirect_uri={config.GITLAB_REDIRECT_URI}&"
+        f"response_type=code&"
+        f"scope=read_user+api"
+    )
+    if state:
+        gitlab_auth_url += f"&state={state}"
+    return RedirectResponse(url=gitlab_auth_url)
+
+
+@router.get("/gitlab/callback")
+def gitlab_callback(
+    code: str = None, 
+    error: str = None, 
+    state: str | None = None,
+    request = None,
+    db: Session = Depends(database.get_db)
+):
+    """Handle GitLab OAuth callback"""
+    # Handle GitLab error response
+    if error:
+        error_desc = f"GitLab+error:+{error}"
+        return RedirectResponse(url=f"/static/index.html?error={error_desc}")
+    
+    if not code:
+        return RedirectResponse(url="/static/index.html?error=No+authorization+code+received")
+    
+    if not config.GITLAB_CLIENT_ID or not config.GITLAB_CLIENT_SECRET:
+        return RedirectResponse(url="/static/index.html?error=GitLab+OAuth+not+configured")
+    
+    try:
+        print(f"[GitLab OAuth] Exchanging code: {code[:20]}...")
+        
+        # Exchange code for access token
+        token_response = requests.post(
+            "https://gitlab.com/oauth/token",
+            json={
+                "client_id": config.GITLAB_CLIENT_ID,
+                "client_secret": config.GITLAB_CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": config.GITLAB_REDIRECT_URI
+            },
+            headers={"Accept": "application/json"}
+        )
+        
+        print(f"[GitLab OAuth] Token response status: {token_response.status_code}")
+        token_response.raise_for_status()
+        token_data = token_response.json()
+        
+        if "error" in token_data:
+            error_msg = token_data.get("error_description", token_data["error"])
+            print(f"[GitLab OAuth] Error: {error_msg}")
+            return RedirectResponse(url=f"/static/index.html?error=GitLab+error:+{error_msg}")
+        
+        if "access_token" not in token_data:
+            print(f"[GitLab OAuth] No access token in response: {token_data}")
+            return RedirectResponse(url="/static/index.html?error=Failed+to+get+access+token")
+        
+        gitlab_token = token_data["access_token"]
+        print(f"[GitLab OAuth] Got access token: {gitlab_token[:20]}...")
+        
+        # Get user info from GitLab
+        user_response = requests.get(
+            "https://gitlab.com/api/v4/user",
+            headers={
+                "Authorization": f"Bearer {gitlab_token}",
+                "Accept": "application/json"
+            }
+        )
+        user_response.raise_for_status()
+        gitlab_user = user_response.json()
+        print(f"[GitLab OAuth] Got user: {gitlab_user['username']}")
+        
+        # Check if user exists
+        user = db.query(models.User).filter(
+            models.User.gitlab_id == str(gitlab_user["id"])
+        ).first()
+        
+        if not user:
+            print(f"[GitLab OAuth] Creating new user: {gitlab_user['username']}")
+            # Create new user
+            user = models.User(
+                username=gitlab_user["username"],
+                gitlab_id=str(gitlab_user["id"]),
+                gitlab_username=gitlab_user["username"],
+                email=gitlab_user.get("email"),
+                auth_method="gitlab",
+                hashed_password=None  # No password for OAuth users
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            print(f"[GitLab OAuth] User created with ID: {user.id}")
+        else:
+            print(f"[GitLab OAuth] User exists with ID: {user.id}")
+            # Update existing user's email if needed
+            if gitlab_user.get("email") and user.email != gitlab_user.get("email"):
+                user.email = gitlab_user.get("email")
+                db.commit()
+        
+        # Create JWT token
+        access_token_expires = timedelta(minutes=config.JWT_EXPIRATION_MINUTES)
+        access_token = jwt.encode(
+            {
+                "sub": str(user.id),
+                "exp": datetime.now(timezone.utc) + access_token_expires
+            },
+            config.JWT_SECRET,
+            algorithm="HS256"
+        )
+        
+        print(f"[GitLab OAuth] Generated JWT token for user {user.id}")
+        
+        # If the request originated from the CLI, show the token explicitly for pasting back
+        if state == "cli":
+            from fastapi.responses import HTMLResponse
+            html = f"""
+            <html>
+                <head>
+                    <title>Zerokey CLI Login</title>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }}
+                        pre {{ background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }}
+                        button {{ background: #0ea5e9; color: #0b1120; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }}
+                        button:hover {{ background: #38bdf8; }}
+                        .card {{ border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h2>CLI login successful</h2>
+                        <p>Copy this JWT and paste it back into your terminal when prompted.</p>
+                        <pre id="token">{access_token}</pre>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('token').textContent)">Copy token</button>
+                        <p style="margin-top:12px;">Keep this token secret. You can now close this tab or head to the dashboard.</p>
+                        <p><a href="/static/dashboard.html">Open dashboard</a></p>
+                    </div>
+                </body>
+            </html>
+            """
+            return HTMLResponse(html)
+
+        # Default web flow: persist token in localStorage then send to dashboard
+        from fastapi.responses import HTMLResponse
+        html = f"""
+        <html>
+            <head>
+                <script>
+                    localStorage.setItem('access_token', '{access_token}');
+                    window.location.href = '/static/dashboard.html';
+                </script>
+            </head>
+            <body>
+                <p>Redirecting to dashboard...</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(html)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"[GitLab OAuth] Request error: {str(e)}")
+        error_msg = f"API+error:+{str(e)[:50]}"
+        return RedirectResponse(url=f"/static/index.html?error={error_msg}")
+    except Exception as e:
+        print(f"[GitLab OAuth] Unexpected error: {str(e)}")
+        error_msg = f"Error:+{str(e)[:50]}"
+        return RedirectResponse(url=f"/static/index.html?error={error_msg}")

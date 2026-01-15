@@ -18,3 +18,8 @@ GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback")
 
+# GitLab OAuth Configuration
+GITLAB_CLIENT_ID = os.getenv("GITLAB_CLIENT_ID")
+GITLAB_CLIENT_SECRET = os.getenv("GITLAB_CLIENT_SECRET")
+GITLAB_REDIRECT_URI = os.getenv("GITLAB_REDIRECT_URI", "http://localhost:8000/auth/gitlab/callback")
+

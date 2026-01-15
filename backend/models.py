@@ -12,7 +12,9 @@ class User(Base):
     email = Column(String, index=True, nullable=True)
     github_id = Column(String, unique=True, index=True, nullable=True)  # GitHub OAuth ID
     github_username = Column(String, nullable=True)  # GitHub username
-    auth_method = Column(String, default="jwt")  # "jwt" or "github"
+    gitlab_id = Column(String, unique=True, index=True, nullable=True)  # GitLab OAuth ID
+    gitlab_username = Column(String, nullable=True)  # GitLab username
+    auth_method = Column(String, default="jwt")  # "jwt", "github", or "gitlab"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     api_keys = relationship("ApiKey", back_populates="user")
