@@ -123,22 +123,29 @@ def login():
         console.print(Panel(
             "[bold cyan]:github: GitHub Login Flow[/bold cyan]\n\n"
             "[yellow]Step 1:[/yellow] Opening GitHub authorization in your browser...\n"
-            "[yellow]Step 2:[/yellow] After you authorize, you'll be automatically logged in\n"
-            "[yellow]Step 3:[/yellow] Token will be saved to localStorage",
+            "[yellow]Step 2:[/yellow] After you authorize, your JWT will be shown in the browser\n"
+            "[yellow]Step 3:[/yellow] Copy it and paste back here to finish CLI login",
             title="GitHub OAuth",
             border_style="cyan",
             expand=False
         ))
         
-        github_url = f"{BASE_URL}/auth/github/login"
+        github_url = f"{BASE_URL}/auth/github/login?state=cli"
         console.print(f"\n[blue]Opening: {github_url}[/blue]\n")
         
         webbrowser.open(github_url)
         
+        console.print("\n[bold yellow]After authorizing, copy the JWT shown in the browser and paste it below.[/bold yellow]\n")
+        pasted_token = typer.prompt("Paste JWT from browser", hide_input=True)
+
+        if not pasted_token.strip():
+            console.print("[red]✗ No token provided. Aborting.[/red]")
+            raise typer.Exit(1)
+
+        save_token(pasted_token.strip())
         console.print(Panel(
-            "[bold green]✓ Browser opened successfully![/bold green]\n\n"
-            "Complete the authorization in your browser.\n"
-            "You'll be automatically redirected to the dashboard.",
+            "[bold green]✓ GitHub login successful via CLI![/bold green]\nToken saved securely.",
+            title="Success",
             border_style="green",
             expand=False
         ))

@@ -77,7 +77,7 @@ def login(
 # ────────────────────────────────────────────────
 
 @router.get("/github/login")
-def github_login():
+def github_login(state: str | None = None):
     """Redirect user to GitHub for authentication"""
     if not config.GITHUB_CLIENT_ID or not config.GITHUB_CLIENT_SECRET:
         raise HTTPException(400, detail="GitHub OAuth not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env")
@@ -88,6 +88,8 @@ def github_login():
         f"redirect_uri={config.GITHUB_REDIRECT_URI}&"
         f"scope=user:email"
     )
+    if state:
+        github_auth_url += f"&state={state}"
     return RedirectResponse(url=github_auth_url)
 
 
@@ -95,6 +97,7 @@ def github_login():
 def github_callback(
     code: str = None, 
     error: str = None, 
+    state: str | None = None,
     request = None,
     db: Session = Depends(database.get_db)
 ):
@@ -205,8 +208,36 @@ def github_callback(
         
         print(f"[GitHub OAuth] Generated JWT token for user {user.id}")
         
-        # Redirect with token - using relative path with fragment to avoid query string issues
-        # Store token temporarily in session and redirect
+        # If the request originated from the CLI, show the token explicitly for pasting back
+        if state == "cli":
+            from fastapi.responses import HTMLResponse
+            html = f"""
+            <html>
+                <head>
+                    <title>Zerokey CLI Login</title>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }}
+                        pre {{ background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }}
+                        button {{ background: #0ea5e9; color: #0b1120; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }}
+                        button:hover {{ background: #38bdf8; }}
+                        .card {{ border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h2>CLI login successful</h2>
+                        <p>Copy this JWT and paste it back into your terminal when prompted.</p>
+                        <pre id="token">{access_token}</pre>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('token').textContent)">Copy token</button>
+                        <p style="margin-top:12px;">Keep this token secret. You can now close this tab or head to the dashboard.</p>
+                        <p><a href="/static/dashboard.html">Open dashboard</a></p>
+                    </div>
+                </body>
+            </html>
+            """
+            return HTMLResponse(html)
+
+        # Default web flow: persist token in localStorage then send to dashboard
         from fastapi.responses import HTMLResponse
         html = f"""
         <html>
