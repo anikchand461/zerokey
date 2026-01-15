@@ -12,3 +12,9 @@ if not JWT_SECRET:
 # Keep your other variables
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./vault.db")
+
+# GitHub OAuth Configuration
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback")
+

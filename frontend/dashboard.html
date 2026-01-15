@@ -143,9 +143,22 @@
     </div>
 
     <script>
-      const token = localStorage.getItem("access_token");
+      // Handle token from URL (GitHub OAuth callback) or localStorage (JWT)
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get("token");
+      const authMethod = params.get("auth");
+      
+      let token = urlToken || localStorage.getItem("access_token");
+      
       if (!token) {
         window.location.href = "/static/index.html";
+      }
+      
+      // If token came from URL, save it to localStorage
+      if (urlToken) {
+        localStorage.setItem("access_token", urlToken);
+        // Clean URL (remove token from URL bar)
+        window.history.replaceState({}, document.title, "/static/dashboard.html");
       }
 
       const headers = {

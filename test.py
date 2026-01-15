@@ -17,7 +17,7 @@ for m in msgs:
     print(requests.post(
         "http://localhost:8000/proxy/u/groq/cbhgroq",
         headers={"Authorization":"Bearer apikey-groq-cbhgroq","Content-Type":"application/json"},
-        json={"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":m}]}
+        json={"model":"groq/compound-mini","messages":[{"role":"user","content":m}]}
     ).json())
 
 

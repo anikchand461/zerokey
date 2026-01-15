@@ -12,6 +12,7 @@ from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
 from rich import print as rprint
 from rich.text import Text
 from rich.box import ROUNDED
+import click
 
 console = Console()
 
@@ -73,30 +74,74 @@ def register():
 
 @app.command()
 def login():
-    """Login to your account"""
-    username = typer.prompt("Username")
-    password = typer.prompt("Password", hide_input=True)
+    """Login to your account (JWT or GitHub)"""
+    
+    console.print("\n[bold cyan]Choose Authentication Method:[/bold cyan]\n")
+    
+    # Display options with logos/icons
+    console.print("  [bold]1.[/bold] JWT Authentication (Username & Password)")
+    console.print("  [bold]2.[/bold] GitHub OAuth\n")
+    
+    choice = typer.prompt(
+        "Enter your choice",
+        type=click.Choice(["1", "2"]),
+        default="1"
+    )
+    
+    auth_choice = "jwt" if choice == "1" else "github"
+    
+    if auth_choice == "jwt":
+        console.print("\n[bold cyan] JWT Login[/bold cyan]")
+        username = typer.prompt("Username")
+        password = typer.prompt("Password", hide_input=True)
 
-    payload = f"username={username}&password={password}"
-    with console.status("[cyan]Logging in..."):
-        try:
-            r = requests.post(
-                f"{BASE_URL}/auth/login",
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                data=payload
-            )
-            r.raise_for_status()
-            token = r.json()["access_token"]
-            save_token(token)
-            console.print(Panel(
-                "[bold green]✓ Login successful![/bold green]\nToken saved securely.",
-                title="Success",
-                border_style="green",
-                expand=False
-            ))
-        except requests.HTTPError as e:
-            console.print(f"[red]✗ Login failed: {e.response.json().get('detail', 'Unknown error')}[/red]")
-            raise typer.Exit(1)
+        payload = f"username={username}&password={password}"
+        with console.status("[cyan]Logging in..."):
+            try:
+                r = requests.post(
+                    f"{BASE_URL}/auth/login",
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    data=payload
+                )
+                r.raise_for_status()
+                token = r.json()["access_token"]
+                save_token(token)
+                console.print(Panel(
+                    "[bold green]✓ JWT Login successful![/bold green]\nToken saved securely.",
+                    title="Success",
+                    border_style="green",
+                    expand=False
+                ))
+            except requests.HTTPError as e:
+                console.print(f"[red]✗ Login failed: {e.response.json().get('detail', 'Unknown error')}[/red]")
+                raise typer.Exit(1)
+    
+    elif auth_choice == "github":
+        import webbrowser
+        import time
+        
+        console.print(Panel(
+            "[bold cyan]:github: GitHub Login Flow[/bold cyan]\n\n"
+            "[yellow]Step 1:[/yellow] Opening GitHub authorization in your browser...\n"
+            "[yellow]Step 2:[/yellow] After you authorize, you'll be automatically logged in\n"
+            "[yellow]Step 3:[/yellow] Token will be saved to localStorage",
+            title="GitHub OAuth",
+            border_style="cyan",
+            expand=False
+        ))
+        
+        github_url = f"{BASE_URL}/auth/github/login"
+        console.print(f"\n[blue]Opening: {github_url}[/blue]\n")
+        
+        webbrowser.open(github_url)
+        
+        console.print(Panel(
+            "[bold green]✓ Browser opened successfully![/bold green]\n\n"
+            "Complete the authorization in your browser.\n"
+            "You'll be automatically redirected to the dashboard.",
+            border_style="green",
+            expand=False
+        ))
 
 @app.command()
 def logout():

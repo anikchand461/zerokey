@@ -8,8 +8,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)  # ← add this
+    hashed_password = Column(String, nullable=True)  # nullable for OAuth users
     email = Column(String, index=True, nullable=True)
+    github_id = Column(String, unique=True, index=True, nullable=True)  # GitHub OAuth ID
+    github_username = Column(String, nullable=True)  # GitHub username
+    auth_method = Column(String, default="jwt")  # "jwt" or "github"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     api_keys = relationship("ApiKey", back_populates="user")
