@@ -4,7 +4,7 @@ msgs = [
     "What is machine learning?",
     "Explain Docker in simple terms",
     "What is the difference between REST and GraphQL?",
-]
+]*7
 
 for m in msgs:
     print(requests.post(
