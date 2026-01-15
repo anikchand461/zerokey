@@ -35,11 +35,11 @@
         status.textContent = "Loading usage for key...";
 
         try {
-          const res = await fetch('/usage', { headers });  # update to /usage/{key_id} if you add per-key endpoint
+          const res = await fetch('/usage', { headers });  // update to /usage/{key_id} if you add per-key endpoint
           if (!res.ok) throw new Error(await res.text());
 
           const logs = await res.json();
-          const filteredLogs = logs.filter(log => log.api_key_id === parseInt(keyId));  # filter per key
+          const filteredLogs = logs.filter(log => log.api_key_id === parseInt(keyId));  // filter per key
 
           status.textContent = filteredLogs.length ? "" : "No usage for this key yet.";
 
