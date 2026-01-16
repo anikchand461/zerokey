@@ -102,6 +102,8 @@ def get_me(
         avatar_url = f"https://bitbucket.org/account/{current_user.bitbucket_username}/avatar/"
 
     local_avatars = [f"/static/profile/{name}" for name in _get_local_profile_images()]
+    if not avatar_url and local_avatars:
+        avatar_url = random.choice(local_avatars)
 
     return {
         "id": current_user.id,

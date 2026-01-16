@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import DATABASE_URL
@@ -22,3 +22,26 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def run_simple_migrations():
+    """Minimal schema migrations to keep existing DBs in sync with models.
+    Adds new nullable columns when missing (no backfill or constraints).
+    """
+    try:
+        insp = inspect(engine)
+        if "users" in insp.get_table_names():
+            cols = {c["name"] for c in insp.get_columns("users")}
+            statements = []
+            if "bitbucket_id" not in cols:
+                statements.append("ALTER TABLE users ADD COLUMN bitbucket_id VARCHAR")
+            if "bitbucket_username" not in cols:
+                statements.append("ALTER TABLE users ADD COLUMN bitbucket_username VARCHAR")
+
+            if statements:
+                with engine.begin() as conn:
+                    for stmt in statements:
+                        conn.execute(text(stmt))
+    except Exception:
+        # Best-effort: avoid breaking app on migration helper
+        pass
