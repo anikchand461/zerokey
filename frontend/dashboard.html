@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="static/images/favicon.ico" />
     <title>Dashboard - Zerokey</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -383,6 +384,7 @@
         </button>
         <div class="dropdown-menu" id="dropdownMenu">
           <button class="dropdown-item" onclick="goProfile()"><img src="static/images/profile.png" alt="Profile" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Profile</button>
+          <button class="dropdown-item" onclick="goCLI()"><img src="static/images/pypylogo.png" alt="PIP Package" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> PIP Package</button>
           <button class="dropdown-item logout" onclick="logout()"><img src="static/images/logout.png" alt="Logout" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Logout</button>
         </div>
       </div>
@@ -497,6 +499,10 @@
 
       function goProfile() {
         window.location.href = "/static/profile.html";
+      }
+
+      function goCLI() {
+        window.location.href = "/static/pip-package.html";
       }
 
       // Add new key

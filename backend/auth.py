@@ -6,47 +6,52 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta, timezone
-import requests
-import os
-
-from . import models, database, config, dependencies
-
-router = APIRouter(prefix="/auth", tags=["auth"])
-
-# Use argon2 – no need for truncation!
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-
-class RegisterRequest(BaseModel):
-    username: str
-    password: str
-    email: str | None = None
-
-
-class PasswordUpdateRequest(BaseModel):
-    old_password: str
-    new_password: str
-
-
-PROFILE_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "static", "images")
-
-
+from textwrap import dedent
+            html = dedent(
+                f"""
+                <html>
+                    <head>
+                        <title>Zerokey CLI Login</title>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }}
+                            pre {{ background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }}
+                            button {{ background: #0ea5e9; color: #0b1120; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }}
+                            button:hover {{ background: #38bdf8; }}
+                            .card {{ border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="card">
+                            <h2>CLI login successful</h2>
+                            <p>Copy this JWT and paste it back into your terminal when prompted.</p>
+                            <pre id="token">{access_token}</pre>
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('token').textContent)">Copy token</button>
+                            <p style="margin-top:12px;">Keep this token secret. You can now close this tab or head to the dashboard.</p>
+                            <p><a href="/static/dashboard.html">Open dashboard</a></p>
+                        </div>
+                    </body>
+                </html>
+                """
+            )
 def _get_local_profile_images():
     if not os.path.isdir(PROFILE_DIR):
         return []
     files = [f for f in os.listdir(PROFILE_DIR) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))]
-    files.sort()
-    return files
-
-def _get_available_username(base: str, db: Session) -> str:
-    """Return a username that does not collide with existing unique usernames.
-    If the base exists, append -1, -2, ... until available.
-    """
-    candidate = base.strip()
-    suffix = 1
-    while db.query(models.User).filter(models.User.username == candidate).first():
-        candidate = f"{base.strip()}-{suffix}"
-        suffix += 1
-    return candidate
+        html = dedent(
+            f"""
+            <html>
+                <head>
+                    <script>
+                        localStorage.setItem('access_token', '{access_token}');
+                        window.location.href = '/static/dashboard.html';
+                    </script>
+                </head>
+                <body>
+                    <p>Redirecting to dashboard...</p>
+                </body>
+            </html>
+            """
+        )
 
 @router.post("/register")
 def register(
@@ -661,28 +666,187 @@ def bitbucket_callback(
         if state == "cli":
             from fastapi.responses import HTMLResponse
             html = f"""
-            <html>
-                <head>
-                    <title>Zerokey CLI Login</title>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }}
-                        pre {{ background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }}
-                        button {{ background: #0ea5e9; color: #0b1120; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }}
-                        button:hover {{ background: #38bdf8; }}
-                        .card {{ border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="card">
-                        <h2>CLI login successful</h2>
-                        <p>Copy this JWT and paste it back into your terminal when prompted.</p>
-                        <pre id="token">{access_token}</pre>
-                        <button onclick="navigator.clipboard.writeText(document.getElementById('token').textContent)">Copy token</button>
-                        <p style="margin-top:12px;">Keep this token secret. You can now close this tab or head to the dashboard.</p>
-                        <p><a href="/static/dashboard.html">Open dashboard</a></p>
-                    </div>
-                </body>
-            </html>
+                        <html>
+                            <head>
+                                <title>Zerokey CLI Login</title>
+                                <style>
+                                    * {
+                                        margin: 0;
+                                        padding: 0;
+                                        box-sizing: border-box;
+                                    }
+
+                                    body {
+                                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                                        background: #ffffff;
+                                        min-height: 100vh;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        padding: 2rem;
+                                    }
+
+                                    .container {
+                                        max-width: 720px;
+                                        width: 100%;
+                                    }
+
+                                    .card {
+                                        background: #ffffff;
+                                        border: 4px solid #000000;
+                                        border-radius: 16px;
+                                        padding: 2.5rem;
+                                        box-shadow: 8px 8px 0px #000000;
+                                        text-align: center;
+                                    }
+
+                                    h2 {
+                                        font-size: 2rem;
+                                        font-weight: 700;
+                                        color: #000000;
+                                        margin-bottom: 1rem;
+                                    }
+
+                                    p {
+                                        font-size: 1rem;
+                                        color: #374151;
+                                        line-height: 1.6;
+                                        margin-bottom: 1.5rem;
+                                    }
+
+                                    pre {
+                                        background: #0f172a;
+                                        color: #e2e8f0;
+                                        padding: 1.5rem;
+                                        border-radius: 8px;
+                                        overflow-x: auto;
+                                        font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+                                        font-size: 0.9rem;
+                                        text-align: left;
+                                        margin-bottom: 1.5rem;
+                                        border: 3px solid #000000;
+                                        box-shadow: 4px 4px 0px #000000;
+                                        word-break: break-all;
+                                        white-space: pre-wrap;
+                                    }
+
+                                    button {
+                                        background: #000000;
+                                        color: #ffffff;
+                                        border: none;
+                                        padding: 1rem 2rem;
+                                        border-radius: 8px;
+                                        cursor: pointer;
+                                        font-size: 1rem;
+                                        font-weight: 600;
+                                        transition: all 0.2s;
+                                        box-shadow: 4px 4px 0px #666666;
+                                    }
+
+                                    button:hover {
+                                        transform: translate(2px, 2px);
+                                        box-shadow: 2px 2px 0px #666666;
+                                    }
+
+                                    button:active {
+                                        transform: translate(4px, 4px);
+                                        box-shadow: 0px 0px 0px #666666;
+                                    }
+
+                                    .info-text {
+                                        font-size: 0.95rem;
+                                        color: #6b7280;
+                                        margin-top: 1.5rem;
+                                        margin-bottom: 0.5rem;
+                                    }
+
+                                    a {
+                                        color: #000000;
+                                        text-decoration: none;
+                                        font-weight: 600;
+                                        border-bottom: 2px solid #000000;
+                                        padding-bottom: 2px;
+                                        transition: all 0.2s;
+                                    }
+
+                                    a:hover {
+                                        background: #000000;
+                                        color: #ffffff;
+                                        padding: 2px 4px;
+                                    }
+
+                                    .success-badge {
+                                        display: inline-block;
+                                        background: #16a34a;
+                                        color: #ffffff;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 8px;
+                                        font-size: 0.9rem;
+                                        font-weight: 600;
+                                        margin-bottom: 1.5rem;
+                                        border: 3px solid #000000;
+                                        box-shadow: 3px 3px 0px #000000;
+                                    }
+
+                                    @media (max-width: 600px) {
+                                        .card {
+                                            padding: 1.5rem;
+                                        }
+
+                                        h2 {
+                                            font-size: 1.5rem;
+                                        }
+
+                                        pre {
+                                            font-size: 0.8rem;
+                                            padding: 1rem;
+                                        }
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="container">
+
+                                    <div class="card">
+                                        <div class="success-badge">✓ CLI Login Successful</div>
+                                        
+                                        <h2>Authentication Complete</h2>
+                                        
+                                        <p>Copy this JWT token and paste it back into your terminal when prompted.</p>
+                                        
+                                        <pre id="token">{access_token}</pre>
+                                        
+                                        <button onclick="copyToken()">Copy Token</button>
+                                        
+                                        <p class="info-text">Keep this token secret and secure. You can now close this tab or continue to the dashboard.</p>
+                                        
+                                        <p><a href="/static/dashboard.html">Open Dashboard</a></p>
+                                    </div>
+                                </div>
+
+                                <script>
+                                    function copyToken() {
+                                        const tokenText = document.getElementById('token').textContent;
+                                        navigator.clipboard.writeText(tokenText).then(() => {
+                                            const button = event.target;
+                                            const originalText = button.textContent;
+                                            button.textContent = '✓ Copied!';
+                                            button.style.background = '#16a34a';
+                                            button.style.boxShadow = '4px 4px 0px #0f7a38';
+                                            
+                                            setTimeout(() => {
+                                                button.textContent = originalText;
+                                                button.style.background = '#000000';
+                                                button.style.boxShadow = '4px 4px 0px #666666';
+                                            }, 2000);
+                                        }).catch(err => {
+                                            console.error('Failed to copy:', err);
+                                            alert('Failed to copy token. Please copy it manually.');
+                                        });
+                                    }
+                                </script>
+                            </body>
+                        </html>
             """
             return HTMLResponse(html)
 
@@ -725,3 +889,4 @@ def delete_account(
     db.commit()
 
     return {"message": "Account deleted"}
+

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroKey CLI - Command Line Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+            padding-top: 10rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Floating Navbar */
+        .navbar {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 4rem);
+            max-width: 1200px;
+            background: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 16px;
+            box-shadow: 6px 6px 0px #000000;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar-logo img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .navbar-logo span {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .hamburger {
+            width: 48px;
+            height: 48px;
+            background: #000000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0px #666666;
+        }
+
+        .hamburger:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #666666;
+        }
+
+        .hamburger:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px #666666;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 1rem);
+            right: 0;
+            background: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 12px;
+            box-shadow: 6px 6px 0px #000000;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+        }
+
+        .dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: #ffffff;
+            width: 100%;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #000000;
+            border-bottom: 3px solid #000000;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+        .dropdown-item.logout {
+            color: #dc2626;
+        }
+
+        .navbar-right {
+            position: relative;
+        }
+
+        /* Main Content */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 8px 8px 0px #000000;
+        }
+
+        .card-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Installation Section */
+        .install-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .install-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 0.75rem;
+        }
+
+        .code-block {
+            background: #f3f4f6;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #000000;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 3px 3px 0px #000000;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 0px #666666;
+        }
+
+        .copy-btn:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #666666;
+        }
+
+        .copy-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #666666;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            background: #ffffff;
+            border: 3px solid #000000;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            background: #000000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+
+        .feature-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.4rem;
+        }
+
+        .feature-desc {
+            font-size: 0.85rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        /* Command Items */
+        .command-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid #000000;
+        }
+
+        .command-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .command-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: inline-block;
+            border: 2px solid #000000;
+        }
+
+        .command-desc {
+            font-size: 0.95rem;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        /* Full Width Card */
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+
+        /* Terminal Window */
+        .demo-terminal {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 4px solid #000000;
+            box-shadow: 6px 6px 0px #000000;
+        }
+
+        .terminal-header {
+            background: #0f172a;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 3px solid #334155;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #22c55e; }
+
+        .terminal-title {
+            margin-left: 0.75rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .terminal-body {
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        .demo-input-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .demo-prompt {
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .demo-input {
+            flex: 1;
+            background: #0f172a;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            padding: 0.9rem 1rem;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .demo-input:focus {
+            border-color: #60a5fa;
+            box-shadow: 4px 4px 0px #000000;
+            transform: translateY(-2px);
+        }
+
+        .demo-suggestions {
+            background: #ffffff;
+            border: 3px solid #000000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .suggestion-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .suggestion-btn {
+            background: #ffffff;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            text-align: left;
+            box-shadow: 3px 3px 0px #000000;
+        }
+
+        .suggestion-btn:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #000000;
+        }
+
+        .suggestion-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px #000000;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .demo-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.75rem 0;
+        }
+
+        .demo-table td {
+            padding: 0.4rem 1rem;
+            border: 1px solid #475569;
+        }
+
+        .demo-table-header {
+            background: #334155;
+            font-weight: 700;
+        }
+
+        .example-section {
+            background: #ffffff;
+            border: 3px solid #000000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .example-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 1rem;
+        }
+
+        .terminal-window {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            overflow-x: auto;
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .terminal-prompt { color: #22c55e; font-weight: 600; }
+        .terminal-command { color: #60a5fa; }
+        .terminal-output { color: #e2e8f0; }
+        .terminal-success { color: #22c55e; }
+        .terminal-error { color: #ef4444; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                width: calc(100% - 2rem);
+                top: 1rem;
+            }
+
+            body {
+                padding-top: 8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-logo span {
+                display: none;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .suggestion-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Floating Navbar -->
+        <nav class="navbar">
+            <div class="navbar-logo">
+                <img src="static/images/logo.png" alt="Zerokey Logo" />
+                <span>Zerokey CLI</span>
+            </div>
+            <div class="navbar-right">
+                <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button class="dropdown-item" onclick="goDashboard()"><img src="static/images/dashboard.png" alt="Dashboard" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Dashboard</button>
+                    <button class="dropdown-item logout" onclick="logout()"><img src="static/images/logout.png" alt="Logout" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Installation Card -->
+            <div class="card">
+                <h2 class="card-title">Installation</h2>
+                
+                <div class="install-section">
+                    <h3 class="install-title">Using npm</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this, 'npm install -g zerokey-cli')">Copy</button>
+                        <code>npm install -g zerokey-cli</code>
+                    </div>
+                </div>
+
+                <div class="install-section">
+                    <h3 class="install-title">Using pip</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this, 'pip install zerokey-cli')">Copy</button>
+                        <code>pip install zerokey-cli</code>
+                    </div>
+                </div>
+
+                <div class="install-section">
+                    <h3 class="install-title">Using Go</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this, 'go install github.com/anikchand461/zerokey-cli@latest')">Copy</button>
+                        <code>go install github.com/anikchand461/zerokey-cli@latest</code>
+                    </div>
+                </div>
+
+                <div class="install-section">
+                    <h3 class="install-title">Verify Installation</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this, 'zerokey --version')">Copy</button>
+                        <code>zerokey --version</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Commands Card -->
+            <div class="card">
+                <h2 class="card-title">Available Commands</h2>
+                
+                <div class="command-item">
+                    <div class="command-name">$ zerokey login</div>
+                    <div class="command-desc">Authenticate with your ZeroKey account</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey add &lt;name&gt; &lt;key&gt;</div>
+                    <div class="command-desc">Add a new API key with custom name</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey get &lt;name&gt;</div>
+                    <div class="command-desc">Retrieve an API key by name</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey list</div>
+                    <div class="command-desc">Display all stored API keys</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey delete &lt;name&gt;</div>
+                    <div class="command-desc">Remove an API key from storage</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey sync</div>
+                    <div class="command-desc">Synchronize keys with cloud</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey usage &lt;name&gt;</div>
+                    <div class="command-desc">View usage statistics</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey export</div>
+                    <div class="command-desc">Export all API keys</div>
+                </div>
+
+                <div class="command-item">
+                    <div class="command-name">$ zerokey config</div>
+                    <div class="command-desc">Configure CLI settings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLI Features Card -->
+        <div class="content">
+            <div class="card full-width-card">
+                <h2 class="card-title">CLI Features</h2>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Quick Search</h3>
+                        <p class="feature-desc">Search and retrieve API keys instantly</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Secure Storage</h3>
+                        <p class="feature-desc">Encrypted local storage for credentials</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Auto-Complete</h3>
+                        <p class="feature-desc">Tab completion for commands</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Cross-Platform</h3>
+                        <p class="feature-desc">Works on Linux, macOS, and Windows</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <script>
+        function toggleMenu() {
+            const hamburger = document.getElementById('hamburger');
+            const dropdown = document.getElementById('dropdownMenu');
+            hamburger.classList.toggle('active');
+            dropdown.classList.toggle('active');
+        }
+
+        function goDashboard() {
+            window.location.href = '/static/dashboard.html';
+        }
+
+        function logout() {            localStorage.removeItem("access_token");            window.location.href = '/static/index.html';
+        }
+
+        function copyCode(button, code) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '✓ Copied!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    // Fallback method
+                    fallbackCopy(button, code);
+                });
+            } else {
+                // Fallback for browsers without clipboard API
+                fallbackCopy(button, code);
+            }
+        }
+
+        function fallbackCopy(button, code) {
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            textArea.style.top = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                const originalText = button.textContent;
+                if (successful) {
+                    button.textContent = '✓ Copied!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                } else {
+                    button.textContent = '✗ Failed';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                const originalText = button.textContent;
+                button.textContent = '✗ Failed';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const navbar = document.querySelector('.navbar');
+            if (!navbar.contains(e.target)) {
+            document.getElementById('hamburger').classList.remove('active');
+            document.getElementById('dropdownMenu').classList.remove('active');
+            }
+        });
+        </script>
+    </body>
+    </html>

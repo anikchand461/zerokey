@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="static/images/favicon.ico" />
     <title>API Key Usage - Zerokey</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -351,6 +352,14 @@
             <img class="dropdown-icon" src="static/images/dashboard.png" alt="Dashboard" />
             Dashboard
           </button>
+          <button class="dropdown-item" onclick="goProfile()">
+            <img class="dropdown-icon" src="static/images/profile.png" alt="Profile" />
+            Profile
+          </button>
+          <button class="dropdown-item" onclick="goCLI()">
+            <img class="dropdown-icon" src="static/images/pypylogo.png" alt="PIP Package" />
+            PIP Package
+          </button>
           <button class="dropdown-item logout" onclick="logout()">
             <img class="dropdown-icon" src="static/images/logout.png" alt="Logout" />
             Logout
@@ -417,6 +426,10 @@
 
       function goProfile() {
         window.location.href = "/static/profile.html";
+      }
+
+      function goCLI() {
+        window.location.href = "/static/pip-package.html";
       }
 
       function logout() {
