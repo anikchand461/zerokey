@@ -6,152 +6,466 @@
     <title>Dashboard - Zerokey</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      body {
-        font-family: -apple-system, BlinkMacOSystemFont, sans-serif;
+      * {
         margin: 0;
-        padding: 2rem;
-        background: #f9fafb;
-        color: #111827;
+        padding: 0;
+        box-sizing: border-box;
       }
+
+      body {
+        font-family: -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #ffffff;
+        color: #111827;
+        padding: 2rem;
+        padding-top: 7rem;
+      }
+
+      /* Floating Navbar */
+      .navbar {
+        position: fixed;
+        top: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 4rem);
+        max-width: 1200px;
+        background: #ffffff;
+        border: 4px solid #000000;
+        border-radius: 16px;
+        box-shadow: 6px 6px 0px #000000;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 1000;
+      }
+
+      .navbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .navbar-logo img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+      }
+
+      .navbar-logo span {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #000000;
+      }
+
+      .hamburger {
+        width: 48px;
+        height: 48px;
+        background: #000000;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.2s;
+        box-shadow: 3px 3px 0px #666666;
+      }
+
+      .hamburger:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 1px 1px 0px #666666;
+      }
+
+      .hamburger:active {
+        transform: translate(3px, 3px);
+        box-shadow: 0px 0px 0px #666666;
+      }
+
+      .hamburger span {
+        width: 24px;
+        height: 3px;
+        background: #ffffff;
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+
+      .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+      }
+
+      .hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 1rem);
+        right: 0;
+        background: #ffffff;
+        border: 4px solid #000000;
+        border-radius: 12px;
+        box-shadow: 6px 6px 0px #000000;
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s;
+      }
+
+      .dropdown-menu.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .dropdown-item {
+        padding: 1rem 1.5rem;
+        border: none;
+        background: #ffffff;
+        width: 100%;
+        text-align: left;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #000000;
+        border-bottom: 3px solid #000000;
+      }
+
+      .dropdown-item:last-child {
+        border-bottom: none;
+        border-radius: 0 0 8px 8px;
+      }
+
+      .dropdown-item:first-child {
+        border-radius: 8px 8px 0 0;
+      }
+
+      .dropdown-item:hover {
+        background: #f3f4f6;
+      }
+
+      .dropdown-item.logout {
+        color: #dc2626;
+      }
+
+      .navbar-right {
+        position: relative;
+      }
+
+      /* Container */
       .container {
         max-width: 1200px;
         margin: 0 auto;
       }
+
       h1 {
-        color: #1e40af;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #000000;
         margin-bottom: 2rem;
       }
+
+      /* Section Cards */
       .section {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: #ffffff;
+        padding: 2rem;
+        border-radius: 16px;
+        border: 4px solid #000000;
+        box-shadow: 8px 8px 0px #000000;
         margin-bottom: 2rem;
       }
+
       h2 {
-        color: #1e3a8a;
-        margin-top: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 1.5rem;
       }
+
+      /* Grid Layout for Top Sections */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      /* Form Elements */
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
       }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #000000;
+        font-size: 0.95rem;
+      }
+
       input,
-      select,
-      button {
-        padding: 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
+      select {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 3px solid #000000;
+        border-radius: 8px;
         font-size: 1rem;
+        background: #ffffff;
+        transition: all 0.2s;
       }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        transform: translateY(-2px);
+        box-shadow: 4px 4px 0px #000000;
+      }
+
+      input::placeholder {
+        color: #9ca3af;
+      }
+
+      /* Buttons */
       button {
-        background: #2563eb;
-        color: white;
+        padding: 0.9rem 1.5rem;
+        background: #000000;
+        color: #ffffff;
         border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
         cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 4px 4px 0px #666666;
       }
+
       button:hover {
-        background: #1d4ed8;
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #666666;
       }
+
+      button:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0px 0px 0px #666666;
+      }
+
+      /* Table */
+      .table-container {
+        overflow-x: auto;
+        margin-top: 1rem;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 1rem;
       }
+
       th,
       td {
-        padding: 0.75rem;
+        padding: 1rem;
         text-align: left;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 3px solid #000000;
       }
+
       th {
         background: #f3f4f6;
+        font-weight: 700;
+        color: #000000;
       }
-      .logout {
-        background: #dc2626;
-        float: right;
+
+      td code {
+        background: #f3f4f6;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        border: 2px solid #000000;
       }
-      .logout:hover {
-        background: #b91c1c;
+
+      tbody tr:last-child td {
+        border-bottom: none;
       }
-      .profile-btn {
-        background: #0ea5e9;
-        float: right;
-        margin-right: 0.75rem;
-      }
-      .profile-btn:hover {
-        background: #0284c7;
-      }
-      #status {
-        color: #16a34a;
+
+      /* Status Messages */
+      #status,
+      #addStatus,
+      #keysStatus,
+      #usageStatus {
         margin-top: 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
       }
+
       .error {
         color: #dc2626;
       }
+
+      .success {
+        color: #16a34a;
+      }
+
+      /* Chart */
       canvas {
         max-height: 400px;
+      }
+
+      /* Action Buttons in Table */
+      td button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 3px 3px 0px #666666;
+      }
+
+      td button:hover {
+        transform: translate(1px, 1px);
+        box-shadow: 2px 2px 0px #666666;
+      }
+
+      @media (max-width: 900px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+
+        .navbar {
+          width: calc(100% - 2rem);
+          top: 1rem;
+        }
+
+        body {
+          padding-top: 6rem;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .navbar-logo span {
+          display: none;
+        }
+
+        .section {
+          padding: 1.5rem;
+        }
+
+        table {
+          font-size: 0.85rem;
+        }
+
+        th,
+        td {
+          padding: 0.75rem 0.5rem;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Dashboard - Zerokey API Vault</h1>
-      <button class="profile-btn" onclick="goProfile()">Profile</button>
-      <button class="logout" onclick="logout()">Logout</button>
+    <!-- Floating Navbar -->
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <img src="static/images/logo.png" alt="Zerokey Logo" />
+        <span>zerokey</span>
+      </div>
+      <div class="navbar-right">
+        <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button class="dropdown-item" onclick="goProfile()"><img src="static/images/profile.png" alt="Profile" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Profile</button>
+          <button class="dropdown-item logout" onclick="logout()"><img src="static/images/logout.png" alt="Logout" style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle; object-fit: contain;"> Logout</button>
+        </div>
+      </div>
+    </nav>
 
-      <!-- Section 1: Add New API Key -->
-      <div class="section">
-        <h2>Add New API Key</h2>
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" id="keyName" placeholder="e.g. production-key" />
+    <div class="container">
+      <div style="margin-bottom: 4rem;"></div>
+
+      <!-- Grid Layout for Top Two Sections -->
+      <div class="grid-2">
+        <!-- Section 1: Add New API Key -->
+        <div class="section">
+          <h2>Add New API Key</h2>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="keyName" placeholder="e.g. production-key" />
+          </div>
+          <div class="form-group">
+            <label>API Key</label>
+            <input
+              type="text"
+              id="apiKey"
+              placeholder="sk-... or your key here"
+            />
+          </div>
+          <div class="form-group">
+            <label>Expiration (optional)</label>
+            <input type="date" id="expiresAt" />
+          </div>
+          <button onclick="addKey()">Add Key</button>
+          <p id="addStatus"></p>
         </div>
-        <div class="form-group">
-          <label>API Key</label>
-          <input
-            type="text"
-            id="apiKey"
-            placeholder="sk-... or your key here"
-          />
+
+        <!-- Section 3: Usage Visualization -->
+        <div class="section">
+          <h2>Usage Overview</h2>
+          <canvas id="usageChart"></canvas>
+          <p id="usageStatus">Loading usage data...</p>
         </div>
-        <div class="form-group">
-          <label>Expiration (optional)</label>
-          <input type="date" id="expiresAt" />
-        </div>
-        <button onclick="addKey()">Add Key</button>
-        <p id="addStatus"></p>
       </div>
 
-      <!-- Section 2: Your Stored Keys -->
+      <!-- Section 2: Your Stored Keys (Full Width) -->
       <div class="section">
         <h2>Your Stored Keys</h2>
-        <table id="keysTable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Provider</th>
-              <th>Visible API Key</th>
-              <th>Unified Endpoint</th>
-              <th>Unified API Key</th>
-              <th>Expires</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-container">
+          <table id="keysTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Provider</th>
+                <th>Visible API Key</th>
+                <th>Unified Endpoint</th>
+                <th>Unified API Key</th>
+                <th>Expires</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
         <p id="keysStatus">Loading keys...</p>
-      </div>
-
-      <!-- Section 3: Usage Visualization -->
-      <div class="section">
-        <h2>Usage Overview</h2>
-        <canvas id="usageChart"></canvas>
-        <p id="usageStatus">Loading usage data...</p>
       </div>
     </div>
 
     <script>
+      // Toggle Dropdown Menu
+      function toggleMenu() {
+        const hamburger = document.getElementById('hamburger');
+        const dropdown = document.getElementById('dropdownMenu');
+        hamburger.classList.toggle('active');
+        dropdown.classList.toggle('active');
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const navbar = document.querySelector('.navbar-right');
+        if (!navbar.contains(event.target)) {
+          document.getElementById('hamburger').classList.remove('active');
+          document.getElementById('dropdownMenu').classList.remove('active');
+        }
+      });
+
       // Handle token from URL (GitHub OAuth callback) or localStorage (JWT)
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get("token");
@@ -213,7 +527,7 @@
           if (!res.ok) throw new Error(await res.text());
 
           status.className = "success";
-          status.textContent = "Key added successfully!";
+          status.textContent = "✓ Key added successfully!";
           document.getElementById("keyName").value = "";
           document.getElementById("apiKey").value = "";
           document.getElementById("expiresAt").value = "";
@@ -259,7 +573,7 @@
             <td>${formatExpiry(k.expires_at)}</td>
             <td>${new Date(k.created_at).toLocaleString()}</td>
             <td>
-              <button onclick="viewUsage(${k.id}, '${k.name.replace(/'/g, "\'")}')">Usage</button>
+              <button onclick="viewUsage(${k.id}, '${k.name.replace(/'/g, "\\'")}')">Usage</button>
               <button onclick="deleteKey(${k.id})">Delete</button>
             </td>
           `;
@@ -319,20 +633,25 @@
               labels: Object.keys(providers),
               datasets: [
                 {
-                  label: "Total Tokens Used",
                   data: Object.values(providers),
                   backgroundColor: [
-                    "#3b82f6",
-                    "#10b981",
-                    "#f59e0b",
-                    "#ef4444",
-                    "#8b5cf6",
+                    "#111827",
+                    "#1f2937",
+                    "#374151",
+                    "#4b5563",
+                    "#6b7280",
                   ],
                 },
               ],
             },
             options: {
               responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+              },
               scales: { y: { beginAtZero: true } },
             },
           });
