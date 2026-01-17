@@ -374,7 +374,7 @@
 
       <!-- Recent Calls Section -->
       <div class="section">
-        <h2>Recent Calls (Last 2)</h2>
+        <h2>Recent Calls (Last 5)</h2>
         <div class="table-container">
           <table>
             <thead>
@@ -468,8 +468,8 @@
         const tableBody = document.getElementById("usageTable");
         tableBody.innerHTML = "";
         
-        // Show last 20 calls in the table
-        const recentLogs = logs.slice(-20).reverse();
+        // Show last 5 calls in the table
+        const recentLogs = logs.slice(-5).reverse();
         
         recentLogs.forEach((log) => {
           const tr = document.createElement("tr");
@@ -508,11 +508,8 @@
                 tension: 0.4,
                 fill: true,
                 borderWidth: 3,
-                pointBackgroundColor: "#000000",
-                pointBorderColor: "#ffffff",
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7,
+                pointRadius: 0,
+                pointHoverRadius: 0,
               },
             ],
           },
@@ -535,7 +532,7 @@
               y: { 
                 beginAtZero: true,
                 grid: {
-                  color: 'rgba(0, 0, 0, 0.1)',
+                  display: false,
                 },
                 ticks: {
                   color: '#000000',
@@ -546,7 +543,7 @@
               },
               x: {
                 grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
+                  display: false,
                 },
                 ticks: {
                   color: '#000000',
