@@ -17,15 +17,15 @@ DATABASE_URL = os.getenv("NEON_DATABASE_URL") or os.getenv("DATABASE_URL", "sqli
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "https://zerokey.onrender.com/auth/github/callback")
 
 # GitLab OAuth Configuration
 GITLAB_CLIENT_ID = os.getenv("GITLAB_CLIENT_ID")
 GITLAB_CLIENT_SECRET = os.getenv("GITLAB_CLIENT_SECRET")
-GITLAB_REDIRECT_URI = os.getenv("GITLAB_REDIRECT_URI", "http://localhost:8000/auth/gitlab/callback")
+GITLAB_REDIRECT_URI = os.getenv("GITLAB_REDIRECT_URI", "https://zerokey.onrender.com/auth/gitlab/callback")
 
 # Bitbucket OAuth Configuration
 BITBUCKET_CLIENT_ID = os.getenv("BITBUCKET_CLIENT_ID")
 BITBUCKET_CLIENT_SECRET = os.getenv("BITBUCKET_CLIENT_SECRET")
-BITBUCKET_REDIRECT_URI = os.getenv("BITBUCKET_REDIRECT_URI", "http://localhost:8000/auth/bitbucket/callback")
+BITBUCKET_REDIRECT_URI = os.getenv("BITBUCKET_REDIRECT_URI", "https://zerokey.onrender.com/auth/bitbucket/callback")
 

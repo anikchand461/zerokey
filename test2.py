@@ -11,9 +11,9 @@ prompts = [
 
 for p in prompts:
     print(requests.post(
-        "http://localhost:8000/proxy/u/openrouter/cbhor",
+        "https://zerokey.onrender.com/proxy/u/openrouter/cbhorg",
         headers={
-            "Authorization": "Bearer apikey-openrouter-cbhor",
+            "Authorization": "Bearer apikey-openrouter-cbhorg",
             "Content-Type": "application/json"
         },
         json={
