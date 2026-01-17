@@ -37,6 +37,17 @@ def _get_local_profile_images():
     files.sort()
     return files
 
+def _get_available_username(base: str, db: Session) -> str:
+    """Return a username that does not collide with existing unique usernames.
+    If the base exists, append -1, -2, ... until available.
+    """
+    candidate = base.strip()
+    suffix = 1
+    while db.query(models.User).filter(models.User.username == candidate).first():
+        candidate = f"{base.strip()}-{suffix}"
+        suffix += 1
+    return candidate
+
 @router.post("/register")
 def register(
     request: RegisterRequest,
@@ -244,9 +255,11 @@ def github_callback(
         
         if not user:
             print(f"[GitHub OAuth] Creating new user: {github_user['login']}")
+            # Ensure unique username to avoid duplicate key violations
+            unique_username = _get_available_username(github_user["login"], db)
             # Create new user
             user = models.User(
-                username=github_user["login"],
+                username=unique_username,
                 github_id=str(github_user["id"]),
                 github_username=github_user["login"],
                 email=primary_email,
@@ -426,9 +439,11 @@ def gitlab_callback(
         
         if not user:
             print(f"[GitLab OAuth] Creating new user: {gitlab_user['username']}")
+            # Ensure unique username to avoid duplicate key violations
+            unique_username = _get_available_username(gitlab_user["username"], db)
             # Create new user
             user = models.User(
-                username=gitlab_user["username"],
+                username=unique_username,
                 gitlab_id=str(gitlab_user["id"]),
                 gitlab_username=gitlab_user["username"],
                 email=gitlab_user.get("email"),
@@ -607,9 +622,11 @@ def bitbucket_callback(
         
         if not user:
             print(f"[Bitbucket OAuth] Creating new user: {bitbucket_user['username']}")
+            # Ensure unique username to avoid duplicate key violations
+            unique_username = _get_available_username(bitbucket_user["username"], db)
             # Create new user
             user = models.User(
-                username=bitbucket_user["username"],
+                username=unique_username,
                 bitbucket_id=str(bitbucket_user["uuid"]),
                 bitbucket_username=bitbucket_user["username"],
                 email=bitbucket_user.get("email"),
