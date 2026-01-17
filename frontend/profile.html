@@ -496,16 +496,42 @@
       }
 
       function pickAvatar(data) {
+        // Prefer OAuth-provided avatar URL
         if (data.avatar_url) return data.avatar_url;
 
+        // Use external image links as the random pool
+        const externalImages = [
+          'https://i.ibb.co/q3F765qq/image.png',
+          'https://i.ibb.co/1f6dst94/image1.png',
+          'https://i.ibb.co/tpGX20JB/image2.png',
+          'https://i.ibb.co/KpqMTjyQ/image3.png',
+          'https://i.ibb.co/wFHP1Vwd/image4.png',
+        ];
+        const idxExternal = Math.floor(Math.random() * externalImages.length);
+        const chosenExternal = externalImages[idxExternal];
+        if (chosenExternal) return chosenExternal;
+
+        // Optional fallback: use any explicit profile_image_* fields
+        const profileImages = [];
+        let i = 0;
+        while (data[`profile_image_${i}`]) {
+          profileImages.push(data[`profile_image_${i}`]);
+          i++;
+        }
+        if (profileImages.length > 0) {
+          const idx = Math.floor(Math.random() * profileImages.length);
+          return profileImages[idx];
+        }
+
+        // Final fallback: use local_avatars list from backend
         const candidates = Array.isArray(data.local_avatars) ? data.local_avatars : [];
         if (candidates.length) {
           const idx = Math.floor(Math.random() * candidates.length);
           return candidates[idx];
         }
 
-        const seed = encodeURIComponent(data.username || "user");
-        return `https://api.dicebear.com/7.x/identicon/svg?seed=${seed}`;
+        // If nothing else available, default to the first external image
+        return externalImages[0];
       }
 
       async function loadProfile() {

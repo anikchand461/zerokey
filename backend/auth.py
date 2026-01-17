@@ -8,7 +8,6 @@ from jose import jwt
 from datetime import datetime, timedelta, timezone
 import requests
 import os
-import random
 
 from . import models, database, config, dependencies
 
@@ -28,7 +27,7 @@ class PasswordUpdateRequest(BaseModel):
     new_password: str
 
 
-PROFILE_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "static", "profile")
+PROFILE_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "static", "images")
 
 
 def _get_local_profile_images():
@@ -101,9 +100,13 @@ def get_me(
     elif current_user.auth_method == "bitbucket" and current_user.bitbucket_username:
         avatar_url = f"https://bitbucket.org/account/{current_user.bitbucket_username}/avatar/"
 
-    local_avatars = [f"/static/profile/{name}" for name in _get_local_profile_images()]
-    if not avatar_url and local_avatars:
-        avatar_url = random.choice(local_avatars)
+    # Provide local avatar paths; frontend will choose any default/random
+    local_avatars = [f"/static/images/{name}" for name in _get_local_profile_images()]
+
+    # Build explicit image paths
+    profile_images = {}
+    for i, name in enumerate(_get_local_profile_images()):
+        profile_images[f"profile_image_{i}"] = f"/static/images/{name}"
 
     return {
         "id": current_user.id,
@@ -116,6 +119,7 @@ def get_me(
         "created_at": current_user.created_at,
         "avatar_url": avatar_url,
         "local_avatars": local_avatars,
+        **profile_images,  # Spread explicit image paths
     }
 
 
