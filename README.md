@@ -26,16 +26,14 @@ Juggling **10–50+ API keys** across providers is painful:
 ## Key Features
 
 - **AES-256 client-side encryption** — keys never touch the server in plaintext
-- **Local-first & self-hosted** — runs on localhost (or your own server), no cloud forced
+- **Deployment** - Render
 - **Unified proxy** — call any provider with the same format (`/proxy/u/<provider>/<slug>`)
-- **CLI power tool** (`zerokey`): add, list, delete, call, stats — with **Rich** beautiful tables, sparklines & panels
-- **Modern Vue.js + Vite dashboard** — visual vault, real-time usage graphs, quick actions
+- **CLI power tool** (`zerokey`): add, list, delete, call, usage — with **Rich** beautiful tables, sparklines & panels
 - **Automatic provider detection** (e.g. `sk-` → OpenAI)
 - **Built-in usage tracking** — tokens used, latency, status codes, errors — per key/provider
-- **Expiration & rotation reminders** — set dates, never forget to rotate
 - **Flexible auth** — JWT (username/password) + OAuth (GitHub / GitLab)
-- **Normalized responses** — consistent output across OpenAI, Groq, Anthropic, Gemini…
-- **Pure Python CLI** — install via `pipx install zerokey-cli`, works everywhere (macOS/Linux/Windows)
+- **Normalized responses** — consistent output across OpenAI, Groq, Anthropic, Gemini ...
+- **CLI for fast development** — install via `pipx install zerokey-cli`, works everywhere (macOS/Linux/Windows)
 
 ## Architecture
 
@@ -48,7 +46,7 @@ zerokey/
 └── ... (pyproject.toml, requirements.txt, etc.)
 ```
 
-- Database: **SQLite** (simple & local) — PostgreSQL support planned
+- Database: \*\*NeonDB — PostgreSQL support planned
 - Encryption: **AES-256** at rest (client-side)
 - Auth: **Argon2** password hashing + **JWT** (short-lived)
 - Proxy: Normalizes requests/responses + retries + logging
@@ -58,29 +56,18 @@ zerokey/
 ### 1. CLI (recommended for daily use)
 
 ```bash
-# Install CLI (once published – for now: pip install -e zerokey_cli/)
-pipx install zerokey-cli    # or from source
+pipx install zerokey-cli    # install the pypy package
 
 zerokey login               # OAuth or username/password
 zerokey add-key             # Add your OpenAI / Groq / etc. key
 zerokey ls                  # Beautiful table of all keys
-zerokey call gpt-4o "Hello world"   # Test call using unified key
-zerokey stats               # Usage overview with sparklines
+zerokey call <unified_key>   # Test call using unified key
+zerokey usage               # Usage overview with sparklines
 ```
 
-### 2. Full stack (backend + dashboard)
+### 2. Full stack (fastAPI backend + interactive Vanilla JS frontend)
 
-```bash
-# Run backend
-cd backend
-poetry install          # or pip install -r ../requirements.txt
-uvicorn main:app --reload
-
-# In another terminal - dashboard
-cd ../frontend
-npm install
-npm run dev             # opens http://localhost:5173
-```
+- hosted link : https://zerokey.onrender.com/
 
 Default: backend on `http://localhost:8000`, frontend proxies to it.
 
@@ -96,18 +83,9 @@ Default: backend on `http://localhost:8000`, frontend proxies to it.
 ## Who Is This For?
 
 - ML/AI engineers juggling multiple LLM providers
-- Competitive programmers using many judge APIs
 - Indie hackers & solo devs tired of `.env` chaos
-- Anyone who wants **usage visibility** and **safe key rotation**
-
-## Roadmap (2026 Goals)
-
-- More providers (easy plugin system)
-- Team sharing & basic RBAC
-- Export/backup/import keys
-- AI-powered anomaly detection
-- PostgreSQL + better scaling
-- Full e2e tests
+- Anyone who wants **usage visibility** in a easy way
+- One who wants to store their API keys at a single place
 
 ## License
 
