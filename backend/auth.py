@@ -6,52 +6,47 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta, timezone
-from textwrap import dedent
-            html = dedent(
-                f"""
-                <html>
-                    <head>
-                        <title>Zerokey CLI Login</title>
-                        <style>
-                            body {{ font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }}
-                            pre {{ background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }}
-                            button {{ background: #0ea5e9; color: #0b1120; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }}
-                            button:hover {{ background: #38bdf8; }}
-                            .card {{ border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }}
-                        </style>
-                    </head>
-                    <body>
-                        <div class="card">
-                            <h2>CLI login successful</h2>
-                            <p>Copy this JWT and paste it back into your terminal when prompted.</p>
-                            <pre id="token">{access_token}</pre>
-                            <button onclick="navigator.clipboard.writeText(document.getElementById('token').textContent)">Copy token</button>
-                            <p style="margin-top:12px;">Keep this token secret. You can now close this tab or head to the dashboard.</p>
-                            <p><a href="/static/dashboard.html">Open dashboard</a></p>
-                        </div>
-                    </body>
-                </html>
-                """
-            )
+import requests
+import os
+
+from . import models, database, config, dependencies
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Use argon2 – no need for truncation!
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    email: str | None = None
+
+
+class PasswordUpdateRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+PROFILE_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "static", "images")
+
+
 def _get_local_profile_images():
     if not os.path.isdir(PROFILE_DIR):
         return []
     files = [f for f in os.listdir(PROFILE_DIR) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))]
-        html = dedent(
-            f"""
-            <html>
-                <head>
-                    <script>
-                        localStorage.setItem('access_token', '{access_token}');
-                        window.location.href = '/static/dashboard.html';
-                    </script>
-                </head>
-                <body>
-                    <p>Redirecting to dashboard...</p>
-                </body>
-            </html>
-            """
-        )
+    files.sort()
+    return files
+
+def _get_available_username(base: str, db: Session) -> str:
+    """Return a username that does not collide with existing unique usernames.
+    If the base exists, append -1, -2, ... until available.
+    """
+    candidate = base.strip()
+    suffix = 1
+    while db.query(models.User).filter(models.User.username == candidate).first():
+        candidate = f"{base.strip()}-{suffix}"
+        suffix += 1
+    return candidate
 
 @router.post("/register")
 def register(
@@ -691,6 +686,27 @@ def bitbucket_callback(
                                         width: 100%;
                                     }
 
+                                    .logo {
+                                        width: 100px;
+                                        height: 100px;
+                                        margin: 0 auto 2rem;
+                                        background: linear-gradient(135deg, #a8c5dd 0%, #7a9cb8 100%);
+                                        border-radius: 20px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        box-shadow: 
+                                            0 6px 12px rgba(0, 0, 0, 0.15),
+                                            0 0 0 3px #ffffff,
+                                            0 0 0 4px #000000;
+                                    }
+
+                                    .logo img {
+                                        width: 70%;
+                                        height: 70%;
+                                        object-fit: contain;
+                                    }
+
                                     .card {
                                         background: #ffffff;
                                         border: 4px solid #000000;
@@ -806,6 +822,9 @@ def bitbucket_callback(
                             </head>
                             <body>
                                 <div class="container">
+                                    <div class="logo">
+                                        <img src="static/images/logo.png" alt="Zerokey Logo" />
+                                    </div>
 
                                     <div class="card">
                                         <div class="success-badge">✓ CLI Login Successful</div>
@@ -889,4 +908,3 @@ def delete_account(
     db.commit()
 
     return {"message": "Account deleted"}
-
