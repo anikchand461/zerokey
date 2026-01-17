@@ -5,73 +5,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zerokey - Register</title>
     <style>
-      body {
-        font-family: system-ui, sans-serif;
-        max-width: 400px;
-        margin: 4rem auto;
-        padding: 1rem;
-      }
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-      input,
-      button {
-        display: block;
-        width: 100%;
-        padding: 0.8rem;
-        margin: 0.6rem 0;
+      * {
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
-      button {
-        background: #28a745;
-        color: white;
+
+      body {
+        font-family: -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        padding: 2rem;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 480px;
+        text-align: center;
+      }
+
+      .logo {
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 3rem;
+        letter-spacing: -0.5px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 3rem;
+      }
+
+      .register-card {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 16px;
+        border: 4px solid #000000;
+        box-shadow: 
+          8px 8px 0px #000000,
+          0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #000000;
+        font-size: 0.95rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 3px solid #000000;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: #ffffff;
+        transition: all 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        transform: translateY(-2px);
+        box-shadow: 4px 4px 0px #000000;
+      }
+
+      input::placeholder {
+        color: #9ca3af;
+      }
+
+      .register-button {
+        width: 100%;
+        padding: 1rem;
+        background: #000000;
+        color: #ffffff;
         border: none;
-        border-radius: 6px;
-        cursor: pointer;
+        border-radius: 8px;
         font-size: 1.1rem;
-      }
-      button:hover {
-        background: #218838;
-      }
-      #status {
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
         margin-top: 1rem;
-        text-align: center;
-        font-weight: bold;
+        box-shadow: 4px 4px 0px #666666;
       }
-      .error {
-        color: #d32f2f;
+
+      .register-button:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #666666;
       }
-      .success {
-        color: #28a745;
+
+      .register-button:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0px 0px 0px #666666;
       }
-      .link {
-        text-align: center;
+
+      .register-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 4px 4px 0px #6b7280;
+      }
+
+      #status {
         margin-top: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+        min-height: 1.5rem;
+        font-size: 0.95rem;
+      }
+
+      .error {
+        color: #dc2626;
+      }
+
+      .success {
+        color: #16a34a;
+      }
+
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.95rem;
+        color: #6b7280;
+      }
+
+      .footer a {
+        color: #000000;
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 2px solid #000000;
+        padding-bottom: 2px;
+        transition: all 0.2s;
+      }
+
+      .footer a:hover {
+        background: #000000;
+        color: #ffffff;
+        padding: 2px 4px;
+      }
+
+      .helper-text {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        h2 {
+          font-size: 1.25rem;
+        }
+
+        .register-card {
+          padding: 1.5rem;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Zerokey API Vault</h1>
-    <h2>Register</h2>
+    <div class="container">
+      <div class="logo">
+        <img src="static/images/logo.png" alt="Zerokey Logo" />
+      </div>
 
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <input type="email" id="email" placeholder="Email (optional)" />
-    <button onclick="register()">Create Account</button>
+      <h1>Register for zerokey</h1>
 
-    <p id="status"></p>
+      <div class="register-card">
+        <form id="registerForm" onsubmit="register(event)">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Choose a username"
+              required
+              autofocus
+            />
+          </div>
 
-    <div class="link">
-      Already have an account? <a href="/static/index.html">Login here</a>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Create a strong password"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email <span style="color: #9ca3af;">(optional)</span></label>
+            <input
+              type="email"
+              id="email"
+              placeholder="your@email.com"
+            />
+            <p class="helper-text">For account recovery and notifications</p>
+          </div>
+
+          <button type="submit" class="register-button" id="registerButton">
+            Create Account
+          </button>
+
+          <p id="status"></p>
+        </form>
+      </div>
+
+      <div class="footer">
+        Already have an account? <a href="/static/index.html">Login here</a>
+      </div>
     </div>
 
     <script>
-      async function register() {
+      async function register(event) {
+        if (event) event.preventDefault();
+        
         const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value;
         const email = document.getElementById("email").value.trim();
         const status = document.getElementById("status");
+        const registerBtn = document.getElementById("registerButton");
 
         if (!username || !password) {
           status.className = "error";
@@ -81,6 +262,7 @@
 
         status.textContent = "Creating account...";
         status.className = "";
+        registerBtn.disabled = true;
 
         try {
           const res = await fetch("/auth/register", {
@@ -102,7 +284,7 @@
           }
 
           status.className = "success";
-          status.textContent = "Account created! Redirecting to login...";
+          status.textContent = "✓ Account created! Redirecting to login...";
 
           setTimeout(() => {
             window.location.href = "/static/index.html";
@@ -110,6 +292,7 @@
         } catch (err) {
           status.className = "error";
           status.textContent = "Error: " + (err.message || "Unknown error");
+          registerBtn.disabled = false;
         }
       }
     </script>

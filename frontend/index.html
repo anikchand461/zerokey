@@ -5,183 +5,288 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zerokey - Login</title>
     <style>
-      body {
-        font-family:
-          -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
-        max-width: 420px;
-        margin: 5rem auto;
-        padding: 1.5rem;
-        background: #f9fafb;
-        color: #111827;
-      }
-      .container {
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      }
-      h1 {
-        text-align: center;
-        margin-bottom: 1.5rem;
-        color: #1e40af;
-      }
-      label {
-        display: block;
-        margin-bottom: 0.4rem;
-        font-weight: 500;
-        color: #374151;
-      }
-      input {
-        width: 100%;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: 1rem;
+      * {
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
+
+      body {
+        font-family: -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        padding: 2rem;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 480px;
+        text-align: center;
+      }
+
+      .logo {
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 3rem;
+        letter-spacing: -0.5px;
+      }
+
+      .login-card {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 16px;
+        border: 4px solid #000000;
+        box-shadow: 
+          8px 8px 0px #000000,
+          0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #000000;
+        font-size: 0.95rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 3px solid #000000;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: #ffffff;
+        transition: all 0.2s;
+      }
+
       input:focus {
         outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 4px 4px 0px #000000;
       }
-      button {
+
+      input::placeholder {
+        color: #9ca3af;
+      }
+
+      .login-button {
         width: 100%;
-        padding: 0.9rem;
-        background: #2563eb;
-        color: white;
+        padding: 1rem;
+        background: #000000;
+        color: #ffffff;
         border: none;
-        border-radius: 6px;
-        font-size: 1.05rem;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.2s;
+        margin-top: 1rem;
+        box-shadow: 4px 4px 0px #666666;
       }
-      button:hover {
-        background: #1d4ed8;
+
+      .login-button:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #666666;
       }
-      button:disabled {
+
+      .login-button:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0px 0px 0px #666666;
+      }
+
+      .login-button:disabled {
         background: #9ca3af;
         cursor: not-allowed;
+        transform: none;
       }
-      #status {
-        margin-top: 1rem;
+
+      .divider {
+        margin: 2rem 0 1.5rem;
         text-align: center;
+        color: #6b7280;
+        font-size: 0.9rem;
         font-weight: 500;
-        min-height: 1.4rem;
       }
+
+      .social-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .social-btn {
+        flex: 1;
+        min-width: 140px;
+        padding: 1rem;
+        background: #ffffff;
+        border: 3px solid #000000;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 4px 4px 0px #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #000000;
+      }
+
+      .social-btn:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #000000;
+      }
+
+      .social-btn:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0px 0px 0px #000000;
+      }
+
+      .social-icon {
+        width: 28px;
+        height: 28px;
+      }
+
+      #status {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+        min-height: 1.5rem;
+        font-size: 0.95rem;
+      }
+
       .error {
         color: #dc2626;
       }
+
       .success {
         color: #16a34a;
       }
+
       .footer {
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         text-align: center;
         font-size: 0.95rem;
         color: #6b7280;
       }
+
       .footer a {
-        color: #2563eb;
+        color: #000000;
         text-decoration: none;
-        font-weight: 500;
+        font-weight: 600;
+        border-bottom: 2px solid #000000;
+        padding-bottom: 2px;
+        transition: all 0.2s;
       }
+
       .footer a:hover {
-        text-decoration: underline;
+        background: #000000;
+        color: #ffffff;
+        padding: 2px 4px;
       }
-      .divider {
-        margin: 1.5rem 0;
-        display: flex;
-        align-items: center;
-        color: #9ca3af;
-      }
-      .divider::before,
-      .divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: #d1d5db;
-      }
-      .divider::before {
-        margin-right: 1rem;
-      }
-      .divider::after {
-        margin-left: 1rem;
-      }
-      .github-btn {
-        width: 100%;
-        padding: 0.9rem;
-        background: #24292f;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 1.05rem;
-        cursor: pointer;
-        transition: background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-      .github-btn:hover {
-        background: #1a1f26;
-      }
-      .github-icon {
-        width: 20px;
-        height: 20px;
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        .login-card {
+          padding: 1.5rem;
+        }
+
+        .social-buttons {
+          flex-direction: column;
+        }
+
+        .social-btn {
+          width: 100%;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Zerokey API Vault</h1>
+      <div class="logo">
+        <img src="static/images/logo.png" alt="Zerokey Logo" />
+      </div>
 
-      <div id="loginForm">
-        <label for="username">Username</label>
-        <input
-          type="text"
-          id="username"
-          placeholder="Enter username"
-          required
-          autofocus
-        />
+      <h1>Login to zerokey</h1>
 
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          placeholder="Enter password"
-          required
-        />
+      <div class="login-card">
+        <div id="loginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Enter your username"
+              required
+              autofocus
+            />
+          </div>
 
-        <button id="loginButton" onclick="login()">Login</button>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          <button class="login-button" id="loginButton" onclick="login()">
+            Login
+          </button>
+
+          <p id="status"></p>
+        </div>
 
         <div class="divider">or</div>
 
-        <a href="/auth/github/login" class="github-btn">
-          <svg class="github-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.343-3.369-1.343-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.545 2.914 1.209.092-.937.349-1.546.635-1.902-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.817c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.192 20 14.44 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd"/>
-          </svg>
-          Continue with GitHub
-        </a>
+        <div class="social-buttons">
+          <a href="/auth/github/login" class="social-btn">
+            <svg class="social-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.343-3.369-1.343-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.545 2.914 1.209.092-.937.349-1.546.635-1.902-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.817c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.192 20 14.44 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd"/>
+            </svg>
+          </a>
 
-        <a href="/auth/gitlab/login" class="github-btn" style="background: #fc6d26; margin-top: 0.5rem;">
-          <img src="static/images/gitlab.png" alt="GitLab" class="github-icon" style="width: 24px; height: 24px; object-fit: contain;">
-          Continue with GitLab
-        </a>
+          <a href="/auth/gitlab/login" class="social-btn">
+            <img src="static/images/gitlab.png" alt="GitLab" class="social-icon">
+          </a>
 
-        <a href="/auth/bitbucket/login" class="github-btn" style="background: #0052cc; margin-top: 0.5rem;">
-          <img src="static/images/bitbucket.png" alt="Bitbucket" class="github-icon" style="width: 24px; height: 24px; object-fit: contain;">
-          Continue with Bitbucket
-        </a>
-
-        <p id="status"></p>
+          <a href="/auth/bitbucket/login" class="social-btn">
+            <img src="static/images/bitbucket.png" alt="Bitbucket" class="social-icon">
+          </a>
+        </div>
       </div>
 
       <div class="footer">
-        Don't have an account? <a href="/static/register.html">Register here</a
-        ><br />
-        <a href="#">Forgot password?</a> (coming soon)
+        Don't have an account? <a href="/static/register.html">Register here</a><br />
+        <a href="#">Forgot password?</a>
       </div>
     </div>
 
@@ -189,7 +294,7 @@
       const loginBtn = document.getElementById("loginButton");
       const status = document.getElementById("status");
 
-      // Check if redirected from GitHub with token
+      // Check if redirected from OAuth with token
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
       const auth = params.get("auth");
@@ -201,7 +306,7 @@
       } else if (token) {
         localStorage.setItem("access_token", token);
         status.className = "success";
-        status.textContent = `✓ ${auth === "github" ? "GitHub" : ""} Login successful! Redirecting...`;
+        status.textContent = `✓ ${auth ? auth.charAt(0).toUpperCase() + auth.slice(1) : "OAuth"} Login successful! Redirecting...`;
         setTimeout(() => {
           window.location.href = "/static/dashboard.html";
         }, 1200);
@@ -223,7 +328,7 @@
         }
 
         status.className = "";
-        status.innerHTML = '<span class="spinner"></span> Logging in...';
+        status.textContent = "Logging in...";
         loginBtn.disabled = true;
 
         try {
@@ -242,7 +347,7 @@
           localStorage.setItem("access_token", data.access_token);
 
           status.className = "success";
-          status.textContent = "Login successful! Redirecting...";
+          status.textContent = "✓ Login successful! Redirecting...";
 
           setTimeout(() => {
             window.location.href = "/static/dashboard.html";
@@ -253,6 +358,13 @@
           loginBtn.disabled = false;
         }
       }
+
+      // Allow Enter key to submit
+      document.getElementById("password").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+          login();
+        }
+      });
     </script>
   </body>
 </html>
