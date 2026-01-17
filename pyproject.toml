@@ -1,0 +1,45 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zerokey-cli"
+version = "0.1.0"
+description = "Secure & unified API key management for developers"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Anikchand", email = "anikchand461@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.0",
+    "requests>=2.30.0",
+    "click>=8.0"
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/anikchand461/zerokey"
+Repository = "https://github.com/anikchand461/zerokey"
+
+[project.scripts]
+zerokey = "zerokey_cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["zerokey_cli"]
+exclude = ["backend*", "frontend*", "release*", "tests*"]

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zerokey - Login</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacOSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 420px;
+        margin: 5rem auto;
+        padding: 1.5rem;
+        background: #f9fafb;
+        color: #111827;
+      }
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: #1e40af;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+        color: #374151;
+      }
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      }
+      button {
+        width: 100%;
+        padding: 0.9rem;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+      #status {
+        margin-top: 1rem;
+        text-align: center;
+        font-weight: 500;
+        min-height: 1.4rem;
+      }
+      .error {
+        color: #dc2626;
+      }
+      .success {
+        color: #16a34a;
+      }
+      .footer {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.95rem;
+        color: #6b7280;
+      }
+      .footer a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      .divider {
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        color: #9ca3af;
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #d1d5db;
+      }
+      .divider::before {
+        margin-right: 1rem;
+      }
+      .divider::after {
+        margin-left: 1rem;
+      }
+      .github-btn {
+        width: 100%;
+        padding: 0.9rem;
+        background: #24292f;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .github-btn:hover {
+        background: #1a1f26;
+      }
+      .github-icon {
+        width: 20px;
+        height: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Zerokey API Vault</h1>
+
+      <div id="loginForm">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter username"
+          required
+          autofocus
+        />
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter password"
+          required
+        />
+
+        <button id="loginButton" onclick="login()">Login</button>
+
+        <div class="divider">or</div>
+
+        <a href="/auth/github/login" class="github-btn">
+          <svg class="github-icon" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.343-3.369-1.343-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.545 2.914 1.209.092-.937.349-1.546.635-1.902-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.817c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.192 20 14.44 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd"/>
+          </svg>
+          Continue with GitHub
+        </a>
+
+        <a href="/auth/gitlab/login" class="github-btn" style="background: #fc6d26; margin-top: 0.5rem;">
+          <svg class="github-icon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L.396 10.93c-.52.52-.52 1.365 0 1.887l10.48 10.479c.604.604 1.582.604 2.188 0l10.48-10.48c.522-.521.522-1.365.002-1.886zM12.003 17.9l-3.45-10.61h6.9L12.003 17.9z"/>
+          </svg>
+          Continue with GitLab
+        </a>
+
+        <p id="status"></p>
+      </div>
+
+      <div class="footer">
+        Don't have an account? <a href="/static/register.html">Register here</a
+        ><br />
+        <a href="#">Forgot password?</a> (coming soon)
+      </div>
+    </div>
+
+    <script>
+      const loginBtn = document.getElementById("loginButton");
+      const status = document.getElementById("status");
+
+      // Check if redirected from GitHub with token
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const auth = params.get("auth");
+      const error = params.get("error");
+
+      if (error) {
+        status.className = "error";
+        status.textContent = "Error: " + decodeURIComponent(error);
+      } else if (token) {
+        localStorage.setItem("access_token", token);
+        status.className = "success";
+        status.textContent = `✓ ${auth === "github" ? "GitHub" : ""} Login successful! Redirecting...`;
+        setTimeout(() => {
+          window.location.href = "/static/dashboard.html";
+        }, 1200);
+      }
+
+      // Redirect if already logged in
+      if (localStorage.getItem("access_token")) {
+        window.location.href = "/static/dashboard.html";
+      }
+
+      async function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          status.className = "error";
+          status.textContent = "Please enter both username and password";
+          return;
+        }
+
+        status.className = "";
+        status.innerHTML = '<span class="spinner"></span> Logging in...';
+        loginBtn.disabled = true;
+
+        try {
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Login failed");
+          }
+
+          const data = await res.json();
+          localStorage.setItem("access_token", data.access_token);
+
+          status.className = "success";
+          status.textContent = "Login successful! Redirecting...";
+
+          setTimeout(() => {
+            window.location.href = "/static/dashboard.html";
+          }, 1200);
+        } catch (err) {
+          status.className = "error";
+          status.textContent = "Error: " + err.message;
+          loginBtn.disabled = false;
+        }
+      }
+    </script>
+  </body>
+</html>
