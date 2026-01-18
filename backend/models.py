@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -17,6 +17,7 @@ class User(Base):
     bitbucket_id = Column(String, unique=True, index=True, nullable=True)  # Bitbucket OAuth ID
     bitbucket_username = Column(String, nullable=True)  # Bitbucket username
     auth_method = Column(String, default="jwt")  # "jwt", "github", "gitlab", or "bitbucket"
+    is_subscribed = Column(Boolean, default=False)  # Premium subscription status
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     api_keys = relationship("ApiKey", back_populates="user")

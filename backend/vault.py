@@ -10,6 +10,10 @@ from . import database, dependencies, models, schemas, security, provider_detect
 
 router = APIRouter(prefix="/keys", tags=["vault"])
 
+# Constants for API key limits
+MAX_FREE_API_KEYS = 3
+MAX_SUBSCRIBED_API_KEYS = float('inf')  # Unlimited
+
 
 def _slugify(value: str) -> str:
     clean = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip().lower())
@@ -35,6 +39,19 @@ def add_key(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(dependencies.get_current_user),
 ):
+    # Check rate limit for non-subscribed users
+    if not current_user.is_subscribed:
+        key_count = (
+            db.query(models.ApiKey)
+            .filter(models.ApiKey.user_id == current_user.id)
+            .count()
+        )
+        if key_count >= MAX_FREE_API_KEYS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Free users can only have {MAX_FREE_API_KEYS} API keys. Please delete existing keys or upgrade to premium.",
+            )
+    
     # Auto-detect provider from API key
     try:
         provider = provider_detection.detect_provider(key_in.key)
@@ -117,6 +134,27 @@ def list_keys(
     ]
 
 
+@router.get("/status", response_model=dict)
+def get_key_status(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(dependencies.get_current_user),
+):
+    """Get user's subscription status and API key count."""
+    key_count = (
+        db.query(models.ApiKey)
+        .filter(models.ApiKey.user_id == current_user.id)
+        .count()
+    )
+    max_keys = MAX_SUBSCRIBED_API_KEYS if current_user.is_subscribed else MAX_FREE_API_KEYS
+    
+    return {
+        "is_subscribed": current_user.is_subscribed,
+        "key_count": key_count,
+        "max_keys": max_keys if max_keys != float('inf') else None,
+        "can_add_more": key_count < max_keys,
+    }
+
+
 @router.delete("/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_key(
     key_id: int,
@@ -138,3 +176,17 @@ def delete_key(
     db.delete(key)
     db.commit()
     return None
+
+
+@router.post("/upgrade", status_code=status.HTTP_200_OK)
+def upgrade_to_premium(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(dependencies.get_current_user),
+):
+    """Upgrade user to premium subscription (unlimited API keys)."""
+    current_user.is_subscribed = True
+    db.commit()
+    return {
+        "message": "Successfully upgraded to premium!",
+        "is_subscribed": True,
+    }

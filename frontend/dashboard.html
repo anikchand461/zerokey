@@ -330,6 +330,54 @@
         box-shadow: 2px 2px 0px #666666;
       }
 
+      /* Key Limit Info */
+      .key-limit-info {
+        background: #f3f4f6;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 2px solid #000000;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .limit-text {
+        font-weight: 600;
+        color: #000000;
+      }
+
+      .limit-warning {
+        color: #dc2626;
+        font-weight: 600;
+      }
+
+      .limit-success {
+        color: #16a34a;
+        font-weight: 600;
+      }
+
+      .upgrade-button {
+        background: #059669;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 3px 3px 0px #047857;
+      }
+
+      .upgrade-button:hover {
+        box-shadow: 2px 2px 0px #047857;
+      }
+
+      .subscription-badge {
+        background: #fbbf24;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #000000;
+        font-weight: 600;
+        color: #000000;
+      }
+
       @media (max-width: 900px) {
         .grid-2 {
           grid-template-columns: 1fr;
@@ -398,6 +446,10 @@
         <!-- Section 1: Add New API Key -->
         <div class="section">
           <h2>Add New API Key</h2>
+          <div class="key-limit-info" id="keyLimitInfo">
+            <span class="limit-text">Keys: <span id="keyCount">0</span>/<span id="maxKeys">3</span></span>
+            <button class="upgrade-button" id="upgradeBtn" onclick="goUpgrade()" style="display: none;">Upgrade to Premium</button>
+          </div>
           <div class="form-group">
             <label>Name</label>
             <input type="text" id="keyName" placeholder="e.g. production-key" />
@@ -414,7 +466,7 @@
             <label>Expiration (optional)</label>
             <input type="date" id="expiresAt" />
           </div>
-          <button onclick="addKey()">Add Key</button>
+          <button id="addKeyBtn" onclick="addKey()">Add Key</button>
           <p id="addStatus"></p>
         </div>
 
@@ -505,6 +557,32 @@
         window.location.href = "/static/pip-package.html";
       }
 
+      function goUpgrade() {
+        if (confirm("Upgrade to premium to add unlimited API keys? (This will be charged to your account)")) {
+          upgradeAccount();
+        }
+      }
+
+      // Upgrade account to premium
+      async function upgradeAccount() {
+        try {
+          const res = await fetch("/keys/upgrade", {
+            method: "POST",
+            headers,
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Upgrade failed");
+          }
+
+          alert("✓ Successfully upgraded to premium! You can now add unlimited API keys.");
+          loadKeyStatus(); // Refresh status
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+
       // Add new key
       async function addKey() {
         const name = document.getElementById("keyName").value.trim();
@@ -530,7 +608,10 @@
             body: JSON.stringify({ name, key: apiKey, expires_at }),
           });
 
-          if (!res.ok) throw new Error(await res.text());
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Failed to add key");
+          }
 
           status.className = "success";
           status.textContent = "✓ Key added successfully!";
@@ -538,6 +619,7 @@
           document.getElementById("apiKey").value = "";
           document.getElementById("expiresAt").value = "";
           loadKeys(); // Refresh list
+          loadKeyStatus(); // Refresh key count
         } catch (err) {
           status.className = "error";
           status.textContent = "Error: " + err.message;
@@ -602,6 +684,7 @@
           });
           if (!res.ok) throw new Error(await res.text());
           loadKeys(); // Refresh list
+          loadKeyStatus(); // Refresh key count
         } catch (err) {
           alert("Delete failed: " + err.message);
         }
@@ -613,7 +696,40 @@
         )}`;
       }
 
-      // Load usage data + chart
+      // Load subscription and key count status
+      async function loadKeyStatus() {
+        try {
+          const res = await fetch("/keys/status", { headers });
+          if (!res.ok) throw new Error(await res.text());
+
+          const status = await res.json();
+          
+          // Update the key count display
+          document.getElementById("keyCount").textContent = status.key_count;
+          document.getElementById("maxKeys").textContent = status.max_keys || "∞";
+          
+          // Update button states and messages
+          const addKeyBtn = document.getElementById("addKeyBtn");
+          const upgradeBtn = document.getElementById("upgradeBtn");
+          const addStatus = document.getElementById("addStatus");
+          
+          if (!status.is_subscribed && !status.can_add_more) {
+            addKeyBtn.disabled = true;
+            upgradeBtn.style.display = "block";
+            addStatus.className = "error";
+            addStatus.textContent = "❌ Limit reached! Delete keys or upgrade to add more.";
+          } else if (!status.is_subscribed && status.max_keys - status.key_count === 1) {
+            addStatus.className = "error";
+            addStatus.textContent = "⚠️ You can add 1 more free key before limit.";
+          } else {
+            addKeyBtn.disabled = false;
+            upgradeBtn.style.display = "none";
+            addStatus.textContent = "";
+          }
+        } catch (err) {
+          console.error("Error loading key status:", err.message);
+        }
+      }
       async function loadUsage() {
         const status = document.getElementById("usageStatus");
         status.textContent = "Loading usage...";
@@ -669,6 +785,7 @@
 
       // Load everything on page load
       window.addEventListener("load", () => {
+        loadKeyStatus(); // Load key status first
         loadKeys();
         loadUsage();
       });
